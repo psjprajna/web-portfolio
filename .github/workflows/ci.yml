@@ -39,7 +39,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
           ANTHROPIC_API_KEY: sk-ant-placeholder-key-for-ci
-          GITHUB_WEBHOOK_SECRET: placeholder-webhook-secret-32-chars-long
 
       - name: Build
         run: npm run build
@@ -84,7 +83,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: prajna-portfolio
+          projectName: web-portfolio
           directory: .vercel/output/static
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           wranglerVersion: '3'

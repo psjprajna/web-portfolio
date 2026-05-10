@@ -8,7 +8,7 @@ const envSchema = z.object({
   // Server-only (never NEXT_PUBLIC_)
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-', 'ANTHROPIC_API_KEY must start with sk-ant-'),
-  GITHUB_WEBHOOK_SECRET: z.string().min(20, 'GITHUB_WEBHOOK_SECRET must be at least 20 characters'),
+  GITHUB_WEBHOOK_SECRET: z.string().min(20).optional(),
 
   // Optional
   VOYAGE_API_KEY: z.string().optional(),
