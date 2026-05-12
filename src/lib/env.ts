@@ -10,10 +10,10 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-', 'ANTHROPIC_API_KEY must start with sk-ant-'),
   WEBHOOK_SECRET: z.string().min(20).optional(),
 
-  // Optional
-  VOYAGE_API_KEY: z.string().optional(),
-  RESEND_API_KEY: z.string().startsWith('re_').optional(),
-  CLOUDFLARE_ANALYTICS_TOKEN: z.string().optional(),
+  // Optional — empty string treated as absent (process.env sets '' not undefined for KEY=)
+  VOYAGE_API_KEY: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
+  RESEND_API_KEY: z.string().startsWith('re_').optional().or(z.literal('')).transform(v => v || undefined),
+  CLOUDFLARE_ANALYTICS_TOKEN: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
 })
 
 const _env = envSchema.safeParse(process.env)
