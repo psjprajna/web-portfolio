@@ -8,6 +8,7 @@ const envSchema = z.object({
   // Server-only (never NEXT_PUBLIC_)
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-', 'ANTHROPIC_API_KEY must start with sk-ant-'),
+  ADMIN_EMAIL: z.string().email('ADMIN_EMAIL must be a valid email'),
   WEBHOOK_SECRET: z.string().min(20).optional(),
 
   // Optional — empty string treated as absent (process.env sets '' not undefined for KEY=)

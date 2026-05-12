@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { sendMagicLink } from './actions'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -9,25 +9,15 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const supabase = createBrowserClient(
-    process.env['NEXT_PUBLIC_SUPABASE_URL']!,
-    process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!
-  )
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/admin/auth/callback`,
-      },
-    })
+    const result = await sendMagicLink(email)
 
-    if (error) {
-      setError(error.message)
+    if (result.error) {
+      setError(result.error)
     } else {
       setSent(true)
     }
