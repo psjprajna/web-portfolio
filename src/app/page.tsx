@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { Navbar } from '@/components/Navbar'
+import { ProjectsSection } from '@/components/sections/ProjectsSection'
 
-const SECTIONS = ['Hero', 'About', 'Skills', 'Projects', 'Contact'] as const
+const SECTIONS: string[] = ['Hero', 'About', 'Skills', 'Projects', 'Contact']
 
 const slideVariants: Variants = {
   enter: (dir: number) => ({
@@ -14,33 +15,76 @@ const slideVariants: Variants = {
   center: {
     x: 0,
     opacity: 1,
-    transition: { duration: 0.4, ease: 'easeInOut' as const },
+    transition: { duration: 0.35, ease: 'easeInOut' as const },
   },
   exit: (dir: number) => ({
     x: dir > 0 ? '-100%' : '100%',
     opacity: 0,
-    transition: { duration: 0.3, ease: 'easeInOut' as const },
+    transition: { duration: 0.25, ease: 'easeInOut' as const },
   }),
 }
 
 function PlaceholderSection({ name }: { name: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 h-full w-full px-8">
-      <div className="border border-[#0f766e] rounded-lg px-10 py-8 text-center">
-        <p className="text-[#94a3b8] text-sm font-mono uppercase tracking-widest mb-2">
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+        padding: '32px',
+      }}
+    >
+      <div
+        style={{
+          border: '1px solid rgba(17,17,17,0.15)',
+          borderRadius: '12px',
+          padding: '40px 48px',
+          textAlign: 'center',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: 'var(--ink3)',
+            marginBottom: '8px',
+          }}
+        >
           section
         </p>
-        <h2 className="text-5xl font-bold text-[#f8fafc]">{name}</h2>
-        <p className="text-[#94a3b8] text-sm mt-3">
-          Content coming in Phase 2
+        <h2
+          style={{
+            fontFamily: 'var(--font-playfair)',
+            fontSize: '3rem',
+            fontWeight: 900,
+            color: 'var(--ink)',
+            letterSpacing: '-0.03em',
+            lineHeight: 1,
+          }}
+        >
+          {name}
+        </h2>
+        <p style={{ color: 'var(--ink3)', fontSize: '13px', marginTop: '12px' }}>
+          Coming in Phase 2
         </p>
       </div>
     </div>
   )
 }
 
+function renderSection(idx: number): React.ReactNode {
+  if (idx === 3) return <ProjectsSection />
+  const label = SECTIONS[idx] ?? 'Section'
+  return <PlaceholderSection name={label} />
+}
+
 export default function Home() {
-  const [activeIdx, setActiveIdx] = useState(0)
+  const [activeIdx, setActiveIdx] = useState(3)
   const [direction, setDirection] = useState(1)
 
   function navigate(idx: number) {
@@ -49,13 +93,17 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[#0f172a] flex flex-col">
-      <Navbar
-        sections={[...SECTIONS]}
-        activeIdx={activeIdx}
-        onNavigate={navigate}
-      />
-      <main className="flex-1 relative overflow-hidden">
+    <div
+      style={{
+        height: '100vh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--cream)',
+      }}
+    >
+      <Navbar sections={SECTIONS} activeIdx={activeIdx} onNavigate={navigate} />
+      <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={activeIdx}
@@ -64,9 +112,9 @@ export default function Home() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="absolute inset-0 flex items-center justify-center"
+            style={{ position: 'absolute', inset: 0 }}
           >
-            <PlaceholderSection name={SECTIONS[activeIdx] ?? 'Hero'} />
+            {renderSection(activeIdx)}
           </motion.div>
         </AnimatePresence>
       </main>

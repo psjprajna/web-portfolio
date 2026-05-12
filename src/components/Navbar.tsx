@@ -17,37 +17,83 @@ export function Navbar({ sections, activeIdx, onNavigate }: NavbarProps) {
   }
 
   return (
-    <header className="relative z-50 flex items-center justify-between px-6 py-4 bg-[#0f172a] border-b border-[#334155]">
+    <header
+      style={{
+        position: 'relative',
+        zIndex: 50,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 48px',
+        height: '56px',
+        background: 'var(--cream)',
+        borderBottom: '1px solid rgba(17,17,17,0.08)',
+      }}
+    >
       {/* Logo */}
-      <span className="text-[#14b8a6] font-mono font-bold text-lg tracking-tight select-none">
+      <span
+        style={{
+          fontFamily: 'var(--font-playfair)',
+          fontSize: '17px',
+          fontWeight: 700,
+          color: 'var(--ink)',
+          letterSpacing: '0.03em',
+          userSelect: 'none',
+        }}
+      >
         PS
       </span>
 
       {/* Desktop nav */}
-      <nav aria-label="desktop" className="hidden md:flex items-center gap-1">
+      <nav aria-label="sections" className="hidden md:flex items-center">
         {sections.map((section, idx) => (
           <button
             key={section}
             onClick={() => handleNavigate(idx)}
             aria-current={activeIdx === idx ? 'page' : undefined}
-            className={[
-              'px-4 py-2 rounded text-sm font-medium transition-colors',
-              activeIdx === idx
-                ? 'text-[#14b8a6] border-b-2 border-[#0f766e]'
-                : 'text-[#94a3b8] hover:text-[#f8fafc]',
-            ].join(' ')}
+            style={{
+              padding: '8px 16px',
+              fontSize: '12px',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase' as const,
+              color: activeIdx === idx ? 'var(--ink)' : 'var(--ink2)',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeIdx === idx
+                ? '1.5px solid var(--gold)'
+                : '1.5px solid transparent',
+              cursor: 'pointer',
+              transition: 'color 0.15s, border-color 0.15s',
+              lineHeight: 1,
+            }}
+            onMouseEnter={e => {
+              if (activeIdx !== idx) {
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'
+              }
+            }}
+            onMouseLeave={e => {
+              if (activeIdx !== idx) {
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink2)'
+              }
+            }}
           >
             {section}
           </button>
         ))}
       </nav>
 
-      {/* Hamburger */}
+      {/* Right side placeholder (theme + lang toggle in Slice 2.1) */}
+      <div style={{ width: '40px' }} />
+
+      {/* Mobile hamburger */}
       <button
         aria-label="Toggle menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen(prev => !prev)}
-        className="md:hidden flex flex-col gap-1.5 p-2 text-[#94a3b8] hover:text-[#f8fafc]"
+        className="md:hidden flex flex-col gap-1.5 p-2"
+        style={{ color: 'var(--ink2)' }}
       >
         <span className="block w-5 h-0.5 bg-current" />
         <span className="block w-5 h-0.5 bg-current" />
@@ -58,19 +104,35 @@ export function Navbar({ sections, activeIdx, onNavigate }: NavbarProps) {
       {menuOpen && (
         <nav
           aria-label="mobile"
-          className="absolute top-full left-0 right-0 bg-[#1e293b] border-b border-[#334155] flex flex-col py-2"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: 'var(--cream)',
+            borderBottom: '1px solid rgba(17,17,17,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '8px 0',
+          }}
         >
           {sections.map((section, idx) => (
             <button
               key={section}
               onClick={() => handleNavigate(idx)}
               aria-current={activeIdx === idx ? 'page' : undefined}
-              className={[
-                'px-6 py-3 text-left text-sm font-medium transition-colors',
-                activeIdx === idx
-                  ? 'text-[#14b8a6]'
-                  : 'text-[#94a3b8] hover:text-[#f8fafc]',
-              ].join(' ')}
+              style={{
+                padding: '12px 24px',
+                textAlign: 'left',
+                fontSize: '12px',
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase' as const,
+                color: activeIdx === idx ? 'var(--ink)' : 'var(--ink2)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               {section}
             </button>
