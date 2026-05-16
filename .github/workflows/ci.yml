@@ -77,7 +77,6 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
 
       - name: Deploy to Cloudflare Pages
