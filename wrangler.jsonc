@@ -8,11 +8,11 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	"vars": {
-		"NEXT_PUBLIC_SUPABASE_URL": "https://cjwnyucmlqdrlrzeouix.supabase.co",
-		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqd255dWNtbHFkcmxyemVvdWl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Mjk4MTUsImV4cCI6MjA5NDAwNTgxNX0.NQLyShq9KiAb3imxueJk-hh-iU6NUsPt6cMFBZJA4no"
-	},
 	"observability": {
 		"enabled": true
 	}
+	// Env vars (NEXT_PUBLIC_* + ADMIN_EMAIL) are managed in the Cloudflare
+	// dashboard as Secrets so they survive `wrangler deploy` and stay
+	// out of source. Required at runtime: NEXT_PUBLIC_SUPABASE_URL,
+	// NEXT_PUBLIC_SUPABASE_ANON_KEY, ADMIN_EMAIL.
 }
