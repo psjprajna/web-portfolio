@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 // Middleware logic extracted for unit testing
 // (Next.js middleware itself runs in the edge runtime — we test the logic only)

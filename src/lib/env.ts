@@ -13,7 +13,6 @@ const envSchema = z.object({
 
   // Optional — empty string treated as absent (process.env sets '' not undefined for KEY=)
   VOYAGE_API_KEY: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
-  RESEND_API_KEY: z.string().startsWith('re_').optional().or(z.literal('')).transform(v => v || undefined),
   CLOUDFLARE_ANALYTICS_TOKEN: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
 })
 
