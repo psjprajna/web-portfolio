@@ -24,6 +24,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     side: 'left',
     logoText: 'SY',
     logoStyle: 'background: linear-gradient(135deg, #1a2744, #0c6e6a); color: #e2e8f0;',
+    logoSrc: '/logos/syneren.png',
     role: 'Software Engineer · USDOT / NHTSA Federal Contract · Virginia, USA',
     date: 'Feb 2023 — Present',
     bullets: [
@@ -110,7 +111,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     side: 'right',
     logoText: 'N',
     logoStyle: 'background: linear-gradient(135deg, #b71c1c, #7a0f0f); color: #fff;',
-    logoSrc: '/logos/nitte-meenakshi.svg',
+    logoSrc: '/logos/nmit.png',
     role: 'B.E. Computer Science · Bengaluru, India',
     date: 'Aug 2020',
     // Resume lists only degree + date; bullets below are factually-defensible undergrad
