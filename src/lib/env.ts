@@ -16,14 +16,30 @@ const envSchema = z.object({
   CLOUDFLARE_ANALYTICS_TOKEN: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
 })
 
-const _env = envSchema.safeParse(process.env)
+type Env = z.infer<typeof envSchema>
 
-if (!_env.success) {
-  console.error('Environment variable validation failed:')
-  _env.error.issues.forEach(issue => {
-    console.error(`  ${issue.path.join('.')}: ${issue.message}`)
-  })
-  throw new Error('Missing or invalid environment variables. Check .env.local against .env.local.example')
+// Validation deferred to first property access. This lets the module be imported
+// safely during build-time page-data collection (where process.env is not yet
+// populated by the runtime platform) and only validates against the real env
+// when a handler actually reads a value at request time.
+let cached: Env | null = null
+
+function validate(): Env {
+  if (cached) return cached
+  const result = envSchema.safeParse(process.env)
+  if (!result.success) {
+    console.error('Environment variable validation failed:')
+    result.error.issues.forEach(issue => {
+      console.error(`  ${issue.path.join('.')}: ${issue.message}`)
+    })
+    throw new Error('Missing or invalid environment variables. Check .env.local against .env.local.example')
+  }
+  cached = result.data
+  return cached
 }
 
-export const env = _env.data
+export const env = new Proxy({} as Env, {
+  get(_target, prop) {
+    return validate()[prop as keyof Env]
+  },
+})
