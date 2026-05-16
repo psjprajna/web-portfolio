@@ -8,12 +8,12 @@ const envSchema = z.object({
   // Server-only (never NEXT_PUBLIC_)
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-', 'ANTHROPIC_API_KEY must start with sk-ant-'),
+  ADMIN_EMAIL: z.string().email('ADMIN_EMAIL must be a valid email'),
   WEBHOOK_SECRET: z.string().min(20).optional(),
 
-  // Optional
-  VOYAGE_API_KEY: z.string().optional(),
-  RESEND_API_KEY: z.string().startsWith('re_').optional(),
-  CLOUDFLARE_ANALYTICS_TOKEN: z.string().optional(),
+  // Optional — empty string treated as absent (process.env sets '' not undefined for KEY=)
+  VOYAGE_API_KEY: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
+  CLOUDFLARE_ANALYTICS_TOKEN: z.string().min(1).optional().or(z.literal('')).transform(v => v || undefined),
 })
 
 const _env = envSchema.safeParse(process.env)
