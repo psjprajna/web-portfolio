@@ -521,6 +521,20 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   transition: transform 0.25s cubic-bezier(.22,1,.36,1);
 }
 .tl-entry:hover .tl-logo, .tl-entry.is-active .tl-logo { transform: scale(1.05); }
+.tl-logo:has(.tl-logo-img) {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 3px;
+}
+html.dark-mode .tl-logo:has(.tl-logo-img) {
+  border-color: rgba(255,255,255,0.18);
+}
+.tl-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .tl-text {
   display: flex;
   flex-direction: row;

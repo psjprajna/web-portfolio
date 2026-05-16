@@ -147,8 +147,18 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
       <span className={`tl-dot t-${entry.type}`} aria-hidden="true" />
       <div className="tl-entry-content">
         <div className="tl-card">
-          <div className="tl-logo" style={parseInlineStyle(entry.logoStyle)}>
-            {entry.logoText}
+          <div
+            className="tl-logo"
+            style={entry.logoSrc ? undefined : parseInlineStyle(entry.logoStyle)}
+          >
+            {entry.logoSrc ? (
+              // 28x28 logos served as static assets via Cloudflare's ASSETS binding;
+              // next/image not used (no consumers elsewhere yet, no benefit at this size)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={entry.logoSrc} alt={entry.place} className="tl-logo-img" />
+            ) : (
+              entry.logoText
+            )}
           </div>
           <div className="tl-text">
             <span className="tl-place">{entry.place}</span>
