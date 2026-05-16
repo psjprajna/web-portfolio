@@ -12,7 +12,7 @@ export function LineageTimeline() {
 
   const activeKey = hoverKey ?? pinnedKey
   const activeEntry = useMemo(
-    () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? JOURNEY_ENTRIES[0]!,
+    () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? null,
     [activeKey],
   )
 
@@ -66,7 +66,7 @@ export function LineageTimeline() {
   const onCardLeave = scheduleClear
 
   return (
-    <div className="journey-area" data-mode="detail">
+    <div className="journey-area" data-mode={activeEntry ? 'detail' : 'overview'}>
       <div className="lineage-heading">
         <p className="lineage-label">Lineage</p>
         <div className="lineage-heading-row">
@@ -75,6 +75,8 @@ export function LineageTimeline() {
         </div>
         <div className="lineage-rule" />
       </div>
+
+      {!activeEntry && <p className="lineage-hint">Select an entry to read more</p>}
 
       <div className="journey-views">
         <div className="timeline-view">
@@ -92,25 +94,27 @@ export function LineageTimeline() {
           </ol>
         </div>
 
-        <aside
-          className="detail-card"
-          onMouseEnter={onCardEnter}
-          onMouseLeave={onCardLeave}
-        >
-          <div className="detail-header">
-            <div className="detail-headline">
-              <div className="detail-place">{activeEntry.place}</div>
-              <div className="detail-role">{activeEntry.role}</div>
+        {activeEntry && (
+          <aside
+            className="detail-card"
+            onMouseEnter={onCardEnter}
+            onMouseLeave={onCardLeave}
+          >
+            <div className="detail-header">
+              <div className="detail-headline">
+                <div className="detail-place">{activeEntry.place}</div>
+                <div className="detail-role">{activeEntry.role}</div>
+              </div>
+              <span className="detail-date">{activeEntry.date}</span>
             </div>
-            <span className="detail-date">{activeEntry.date}</span>
-          </div>
-          <div className="detail-rule" />
-          <ul className="detail-bullets">
-            {activeEntry.bullets.map((bullet, i) => (
-              <li key={i}>{bullet}</li>
-            ))}
-          </ul>
-        </aside>
+            <div className="detail-rule" />
+            <ul className="detail-bullets">
+              {activeEntry.bullets.map((bullet, i) => (
+                <li key={i}>{bullet}</li>
+              ))}
+            </ul>
+          </aside>
+        )}
       </div>
     </div>
   )
@@ -139,7 +143,7 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
       <div className="tl-entry-content">
         <div className="tl-card">
           <div
-            className="tl-logo"
+            className={`tl-logo${entry.key === 'nmit' ? ' tl-logo--n-only' : ''}`}
             style={entry.logoSrc ? undefined : parseInlineStyle(entry.logoStyle)}
           >
             {entry.logoSrc ? (

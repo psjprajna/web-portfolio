@@ -104,11 +104,11 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   },
   {
     key: 'nmit',
-    place: 'Nitte Meenakshi IT',
+    place: 'NMIT',
     shortRole: 'B.E. Computer Science',
     type: 'edu',
     side: 'right',
-    logoText: 'NM',
+    logoText: 'N',
     logoStyle: 'background: linear-gradient(135deg, #b71c1c, #7a0f0f); color: #fff;',
     logoSrc: '/logos/nitte-meenakshi.svg',
     role: 'B.E. Computer Science · Bengaluru, India',
