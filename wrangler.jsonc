@@ -11,4 +11,8 @@
 	"observability": {
 		"enabled": true
 	}
+	// Env vars (NEXT_PUBLIC_* + ADMIN_EMAIL) are managed in the Cloudflare
+	// dashboard as Secrets so they survive `wrangler deploy` and stay
+	// out of source. Required at runtime: NEXT_PUBLIC_SUPABASE_URL,
+	// NEXT_PUBLIC_SUPABASE_ANON_KEY, ADMIN_EMAIL.
 }

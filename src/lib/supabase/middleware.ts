@@ -1,18 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
-// Use process.env directly — middleware runs in edge runtime which only
-// has access to NEXT_PUBLIC_ vars. Importing env.ts would fail because
-// it validates server-only secrets unavailable in the edge runtime.
-const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? ''
-const SUPABASE_ANON_KEY = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
-
 export function createSupabaseMiddlewareClient(request: NextRequest) {
   let response = NextResponse.next({ request })
 
+  // Read at request time. On Cloudflare Workers, OpenNext's shim populates
+  // process.env from runtime bindings when handling each request; module-level
+  // reads run at cold start (before the shim) and capture undefined.
+  const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? ''
+  const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
+
   const supabase = createServerClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
