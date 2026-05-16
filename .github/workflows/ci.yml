@@ -48,6 +48,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
 
   deploy:
     name: Deploy to Cloudflare Pages
@@ -77,6 +78,7 @@ jobs:
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
           VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
