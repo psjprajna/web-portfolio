@@ -54,14 +54,23 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
         <div className="card-actions">
-          <a className="card-btn card-btn-github" href={project.githubUrl}>
-            <span className="material-symbols-outlined">code</span>
-            <span>GITHUB</span>
-          </a>
-          <a className="card-btn card-btn-spec" href={project.specUrl}>
-            <span className="material-symbols-outlined">description</span>
-            <span>READ SPEC</span>
-          </a>
+          {project.githubUrl && (
+            <a
+              className="card-btn card-btn-github"
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="material-symbols-outlined">code</span>
+              <span>GITHUB</span>
+            </a>
+          )}
+          {project.specUrl && (
+            <a className="card-btn card-btn-spec" href={project.specUrl}>
+              <span className="material-symbols-outlined">description</span>
+              <span>READ SPEC</span>
+            </a>
+          )}
         </div>
       </div>
     </article>
