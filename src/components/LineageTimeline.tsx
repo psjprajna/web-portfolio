@@ -15,7 +15,6 @@ export function LineageTimeline() {
     () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? JOURNEY_ENTRIES[0]!,
     [activeKey],
   )
-  const mode: 'detail' | 'timeline' = activeKey ? 'detail' : 'timeline'
 
   const clearTimer = useCallback(() => {
     if (hideTimerRef.current !== null) {
@@ -67,7 +66,7 @@ export function LineageTimeline() {
   const onCardLeave = scheduleClear
 
   return (
-    <div className="journey-area" data-mode={mode}>
+    <div className="journey-area" data-mode="detail">
       <div className="lineage-heading">
         <p className="lineage-label">Lineage</p>
         <div className="lineage-heading-row">
@@ -75,14 +74,6 @@ export function LineageTimeline() {
           <span className="lineage-sub">Work, study & the path that got me here</span>
         </div>
         <div className="lineage-rule" />
-        <p className="lineage-hint" aria-hidden="true">
-          <span className="lineage-hint-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </span>
-          <span>Select an entry to read more</span>
-        </p>
       </div>
 
       <div className="journey-views">
