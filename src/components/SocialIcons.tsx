@@ -1,11 +1,31 @@
+'use client'
+
+import { useState } from 'react'
+
 type Variant = 'hero' | 'footer'
 
 const LINKEDIN_URL = 'https://linkedin.com/in/psjprajna'
 const GITHUB_URL = 'https://github.com/psjprajna'
-const EMAIL_URL = 'mailto:prajna.shetty39@gmail.com'
+const EMAIL_ADDRESS = 'prajna.shetty39@gmail.com'
+const EMAIL_URL = `mailto:${EMAIL_ADDRESS}`
+
+const DESKTOP_INPUT_QUERY = '(hover: hover) and (pointer: fine)'
 
 export function SocialIcons({ variant }: { variant: Variant }) {
   const cls = variant === 'hero' ? 'hero-soc-btn' : 'icon-btn'
+  const [copied, setCopied] = useState(false)
+
+  const handleEmailClick = async () => {
+    if (!window.matchMedia(DESKTOP_INPUT_QUERY).matches) return
+    try {
+      await navigator.clipboard.writeText(EMAIL_ADDRESS)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard blocked (insecure context, permissions). mailto: href still fires.
+    }
+  }
+
   return (
     <>
       <a
@@ -26,9 +46,19 @@ export function SocialIcons({ variant }: { variant: Variant }) {
       >
         <GitHubIcon />
       </a>
-      <a className={cls} href={EMAIL_URL} aria-label="Email">
+      <a
+        className={cls}
+        href={EMAIL_URL}
+        onClick={handleEmailClick}
+        aria-label="Email — click to copy address"
+      >
         <MailIcon />
       </a>
+      {copied && (
+        <span className="copy-toast" role="status" aria-live="polite">
+          Email copied ✓
+        </span>
+      )}
     </>
   )
 }

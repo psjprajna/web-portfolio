@@ -1,11 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const TABLET_MIN_PX = 768
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
+  const drawerRef = useRef<HTMLDivElement>(null)
 
   const close = useCallback(() => setOpen(false), [])
   const toggle = useCallback(() => setOpen((v) => !v), [])
@@ -18,9 +20,30 @@ export function MobileNavMenu() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  useEffect(() => {
+    if (!open) return
+    function handleDocumentClick(e: MouseEvent) {
+      const target = e.target as Node | null
+      if (!target) return
+      if (drawerRef.current?.contains(target)) return
+      if (hamburgerRef.current?.contains(target)) return
+      setOpen(false)
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('click', handleDocumentClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('click', handleDocumentClick)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [open])
+
   return (
     <>
       <button
+        ref={hamburgerRef}
         type="button"
         className={`nav-hamburger${open ? ' open' : ''}`}
         onClick={toggle}
@@ -31,7 +54,11 @@ export function MobileNavMenu() {
         <span />
         <span />
       </button>
-      <div className={`nav-drawer${open ? ' open' : ''}`} aria-hidden={!open}>
+      <div
+        ref={drawerRef}
+        className={`nav-drawer${open ? ' open' : ''}`}
+        aria-hidden={!open}
+      >
         <ul>
           <li>
             <a href="#hero" onClick={close}>

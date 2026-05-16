@@ -6,7 +6,7 @@ export function Navbar() {
   return (
     <nav>
       <a className="nav-logo" href="#hero">
-        PS
+        P<em>S</em>
       </a>
 
       <span className="nav-current" aria-hidden="true" />
