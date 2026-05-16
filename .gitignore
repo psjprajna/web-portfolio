@@ -50,6 +50,7 @@ supabase/.temp
 
 # Cloudflare
 .wrangler/
+.open-next/
 worker-configuration.d.ts
 
 # Editor
