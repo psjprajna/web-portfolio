@@ -832,6 +832,7 @@ html.dark-mode .tl-logo:has(.tl-logo-img) {
   padding: 0 6px;
 }
 .card-btn-spec:hover { color: var(--ink); }
+.card-btn.is-disabled { cursor: default; pointer-events: none; }
 
 /* ============================================================
    FOOTER

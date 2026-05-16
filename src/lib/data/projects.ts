@@ -29,7 +29,7 @@ export const PROJECTS: readonly Project[] = [
     description:
       'Production RAG over UAE Labour Law, MOHRE, and Visa regulations — heading-aware PDF chunking, hybrid BM25 + dense retrieval on Azure AI Search with BGE cross-encoder reranking. RAGAS-evaluated, LangFuse-traced, deployed on Azure App Service (UAE North).',
     status: { kind: 'live', label: 'In Progress' },
-    thumbIcon: 'description',
+    thumbIcon: 'play_circle',
     metaArchitecture: { label: 'Architecture', value: 'RAG / Azure AI Search' },
     metaImpact: { label: 'Impact', value: '+20% context precision', accent: true },
   },
@@ -39,7 +39,7 @@ export const PROJECTS: readonly Project[] = [
     description:
       'Fine-tuned AraBERT on UAE Arabic sentiment data (HARD benchmark) using LoRA — outperformed CatBoost TF-IDF baseline by 18% F1 on Gulf Arabic dialects. Deployed as FastAPI on Azure Container Apps with PSI-based vocabulary drift monitoring.',
     status: { kind: 'internal', label: 'In Progress' },
-    thumbIcon: 'translate',
+    thumbIcon: 'image',
     metaArchitecture: { label: 'Architecture', value: 'Fine-Tuning / AraBERT + LoRA' },
     metaImpact: { label: 'Impact', value: '+18% F1 (Gulf Arabic)', accent: true },
   },
@@ -49,7 +49,7 @@ export const PROJECTS: readonly Project[] = [
     description:
       'Full-stack SaaS automating job search via a 5-agent Claude pipeline — Resume Parser, Job Ranker (0–100 fit score), ATS Content Generator, Cover Letter Writer, and Interview Prep with STAR-format answers. Stripe billing, Clerk auth, Supabase backend.',
     status: { kind: 'live', label: 'v1.0 Active' },
-    thumbIcon: 'work',
+    thumbIcon: 'play_circle',
     metaArchitecture: { label: 'Architecture', value: 'Multi-Agent / Claude API' },
     metaImpact: { label: 'Impact', value: '5-agent pipeline', accent: true },
     githubUrl: 'https://github.com/psjprajna/AI-Job-Application-Agent',
@@ -60,7 +60,7 @@ export const PROJECTS: readonly Project[] = [
     description:
       'Gradient boosting classifier on the IBM Telco dataset (7K rows, 26% churn) — 4 engineered features, 0.85 AUC-ROC across 5-fold StratifiedKFold, SHAP TreeExplainer identifying month-to-month contract as the top churn predictor. Deployed as FastAPI with opt-in SHAP explainability.',
     status: { kind: 'plain', label: 'Live' },
-    thumbIcon: 'analytics',
+    thumbIcon: 'play_circle',
     metaArchitecture: { label: 'Architecture', value: 'Gradient Boosting + SHAP' },
     metaImpact: { label: 'Impact', value: '0.85 AUC-ROC', accent: true },
     githubUrl: 'https://github.com/psjprajna/Telecom_Customer_Churn_Prediction',

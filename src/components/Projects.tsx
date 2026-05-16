@@ -54,26 +54,32 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
         <div className="card-actions">
-          {project.githubUrl && (
-            <a
-              className="card-btn card-btn-github"
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="material-symbols-outlined">code</span>
-              <span>GITHUB</span>
-            </a>
-          )}
-          {project.specUrl && (
-            <a className="card-btn card-btn-spec" href={project.specUrl}>
-              <span className="material-symbols-outlined">description</span>
-              <span>READ SPEC</span>
-            </a>
-          )}
+          <ActionButton kind="github" href={project.githubUrl} />
+          <ActionButton kind="spec" href={project.specUrl} />
         </div>
       </div>
     </article>
+  )
+}
+
+function ActionButton({ kind, href }: { kind: 'github' | 'spec'; href: string | undefined }) {
+  const cls = `card-btn card-btn-${kind}`
+  const icon = kind === 'github' ? 'code' : 'description'
+  const label = kind === 'github' ? 'GITHUB' : 'READ SPEC'
+  if (href === undefined) {
+    return (
+      <span className={`${cls} is-disabled`} aria-disabled="true">
+        <span className="material-symbols-outlined">{icon}</span>
+        <span>{label}</span>
+      </span>
+    )
+  }
+  const externalAttrs = kind === 'github' ? { target: '_blank', rel: 'noopener noreferrer' } : {}
+  return (
+    <a className={cls} href={href} {...externalAttrs}>
+      <span className="material-symbols-outlined">{icon}</span>
+      <span>{label}</span>
+    </a>
   )
 }
 
