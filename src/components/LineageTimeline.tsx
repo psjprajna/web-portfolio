@@ -148,7 +148,7 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
       <div className="tl-entry-content">
         <div className="tl-card">
           <div
-            className={`tl-logo${entry.key === 'nmit' ? ' tl-logo--n-only' : ''}`}
+            className="tl-logo"
             style={entry.logoSrc ? undefined : parseInlineStyle(entry.logoStyle)}
           >
             {entry.logoSrc ? (

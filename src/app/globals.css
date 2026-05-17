@@ -530,15 +530,6 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   object-fit: contain;
   display: block;
 }
-.tl-logo--n-only {
-  overflow: hidden;
-}
-.tl-logo--n-only .tl-logo-img {
-  width: 280%;
-  height: 280%;
-  object-fit: contain;
-  object-position: top left;
-}
 .tl-text {
   display: flex;
   flex-direction: row;
