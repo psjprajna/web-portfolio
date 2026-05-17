@@ -12,9 +12,10 @@ export function LineageTimeline() {
 
   const activeKey = hoverKey ?? pinnedKey
   const activeEntry = useMemo(
-    () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? null,
+    () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? JOURNEY_ENTRIES[0]!,
     [activeKey],
   )
+  const mode: 'detail' | 'timeline' = activeKey ? 'detail' : 'timeline'
 
   const clearTimer = useCallback(() => {
     if (hideTimerRef.current !== null) {
@@ -66,7 +67,7 @@ export function LineageTimeline() {
   const onCardLeave = scheduleClear
 
   return (
-    <div className="journey-area" data-mode={activeEntry ? 'detail' : 'overview'}>
+    <div className="journey-area" data-mode={mode}>
       <div className="lineage-heading">
         <p className="lineage-label">Lineage</p>
         <div className="lineage-heading-row">
@@ -74,9 +75,15 @@ export function LineageTimeline() {
           <span className="lineage-sub">Work, study & the path that got me here</span>
         </div>
         <div className="lineage-rule" />
+        <p className="lineage-hint" aria-hidden="true">
+          <span className="lineage-hint-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </span>
+          <span>Select an entry to read more</span>
+        </p>
       </div>
-
-      {!activeEntry && <p className="lineage-hint">Select an entry to read more</p>}
 
       <div className="journey-views">
         <div className="timeline-view">
@@ -94,27 +101,25 @@ export function LineageTimeline() {
           </ol>
         </div>
 
-        {activeEntry && (
-          <aside
-            className="detail-card"
-            onMouseEnter={onCardEnter}
-            onMouseLeave={onCardLeave}
-          >
-            <div className="detail-header">
-              <div className="detail-headline">
-                <div className="detail-place">{activeEntry.place}</div>
-                <div className="detail-role">{activeEntry.role}</div>
-              </div>
-              <span className="detail-date">{activeEntry.date}</span>
+        <aside
+          className="detail-card"
+          onMouseEnter={onCardEnter}
+          onMouseLeave={onCardLeave}
+        >
+          <div className="detail-header">
+            <div className="detail-headline">
+              <div className="detail-place">{activeEntry.place}</div>
+              <div className="detail-role">{activeEntry.role}</div>
             </div>
-            <div className="detail-rule" />
-            <ul className="detail-bullets">
-              {activeEntry.bullets.map((bullet, i) => (
-                <li key={i}>{bullet}</li>
-              ))}
-            </ul>
-          </aside>
-        )}
+            <span className="detail-date">{activeEntry.date}</span>
+          </div>
+          <div className="detail-rule" />
+          <ul className="detail-bullets">
+            {activeEntry.bullets.map((bullet, i) => (
+              <li key={i}>{bullet}</li>
+            ))}
+          </ul>
+        </aside>
       </div>
     </div>
   )
@@ -147,8 +152,6 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
             style={entry.logoSrc ? undefined : parseInlineStyle(entry.logoStyle)}
           >
             {entry.logoSrc ? (
-              // 28x28 logos served as static assets via Cloudflare's ASSETS binding;
-              // next/image not used (no consumers elsewhere yet, no benefit at this size)
               // eslint-disable-next-line @next/next/no-img-element
               <img src={entry.logoSrc} alt={entry.place} className="tl-logo-img" />
             ) : (
@@ -173,8 +176,6 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
   )
 }
 
-// React requires camelCase keys for inline style objects; the prototype stored
-// raw CSS strings, so parse them here at the boundary.
 function parseInlineStyle(css: string): React.CSSProperties {
   const result: Record<string, string> = {}
   for (const decl of css.split(';')) {

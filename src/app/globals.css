@@ -627,20 +627,6 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; flex-shrink: 0; }
 
 .lineage-hint {
-  font-family: var(--sans);
-  font-size: 12px;
-  font-style: italic;
-  color: var(--ink2);
-  text-align: center;
-  margin: 0 0 8px;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-.journey-area[data-mode="detail"] .lineage-hint {
-  opacity: 0;
-  pointer-events: none;
-}
-.lineage-hint-legacy {
   display: inline-flex;
   align-items: center;
   gap: 7px;
