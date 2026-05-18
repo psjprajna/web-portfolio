@@ -31,8 +31,10 @@ export function LineageTimeline() {
       const listRect = list.getBoundingClientRect()
       const top = first.top + first.height / 2 - listRect.top
       const bottom = listRect.bottom - (last.top + last.height / 2)
-      list.style.setProperty('--spine-top', `${top}px`)
-      list.style.setProperty('--spine-bottom', `${bottom}px`)
+      const journeyArea = list.closest('.journey-area') as HTMLElement | null
+      const target = journeyArea ?? list
+      target.style.setProperty('--spine-top', `${top}px`)
+      target.style.setProperty('--spine-bottom', `${bottom}px`)
     }
 
     updateSpine()
@@ -118,7 +120,7 @@ export function LineageTimeline() {
 
       <div className="journey-views">
         <div className="timeline-view">
-          <ol className="tl-list">
+          <ol className="tl-list" ref={listRef}>
             {JOURNEY_ENTRIES.map((entry) => (
               <TimelineEntry
                 key={entry.key}
