@@ -463,7 +463,7 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   max-width: 480px;
   width: 100%;
   align-self: stretch;
-  margin-top: 17px;
+  margin-top: 0;
   margin-bottom: 24px;
   display: flex;
   flex-direction: column;
@@ -477,24 +477,13 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .tl-list::before {
   content: '';
   position: absolute; left: 50%;
-  top: 23px; bottom: 0;
+  top: var(--spine-top, 28px);
+  bottom: var(--spine-bottom, 62px);
   width: 1px;
   background: var(--border);
   transform: translateX(-0.5px);
 }
 .tl-entry { position: relative; padding: 14px 0; display: flex; cursor: pointer; }
-.tl-entry:last-child::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 28px;
-  bottom: -2px;
-  width: 3px;
-  background: var(--cream);
-  transform: translateX(-1.5px);
-  z-index: 1;
-  pointer-events: none;
-}
 .tl-entry.side-left  { padding-right: calc(50% + 18px); justify-content: flex-end; }
 .tl-entry.side-right { padding-left:  calc(50% + 18px); justify-content: flex-start; }
 .tl-entry-content { display: flex; flex-direction: column; max-width: 100%; min-width: 0; }
@@ -587,7 +576,7 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   max-height: 360px;
   overflow: hidden;
   margin-left: 48px;
-  margin-top: 17px;
+  margin-top: 0;
   margin-bottom: 24px;
   transition: background 0.4s;
 }
@@ -615,7 +604,7 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .detail-bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
 .detail-bullets li:last-child { margin-bottom: 0; }
 
-.lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; flex-shrink: 0; }
+.lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0; flex-shrink: 0; }
 
 .lineage-hint {
   display: inline-flex;

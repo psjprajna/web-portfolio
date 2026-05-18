@@ -9,6 +9,7 @@ export function LineageTimeline() {
   const [pinnedKey, setPinnedKey] = useState<string | null>(null)
   const [hoverKey, setHoverKey] = useState<string | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const listRef = useRef<HTMLOListElement | null>(null)
 
   const activeKey = hoverKey ?? pinnedKey
   const activeEntry = useMemo(
@@ -16,6 +17,36 @@ export function LineageTimeline() {
     [activeKey],
   )
   const mode: 'detail' | 'timeline' = activeKey ? 'detail' : 'timeline'
+
+  useEffect(() => {
+    const list = listRef.current
+    if (!list) return
+
+    function updateSpine() {
+      if (!list) return
+      const dots = list.querySelectorAll<HTMLElement>('.tl-dot')
+      if (dots.length < 2) return
+      const first = dots[0]!.getBoundingClientRect()
+      const last = dots[dots.length - 1]!.getBoundingClientRect()
+      const listRect = list.getBoundingClientRect()
+      const top = first.top + first.height / 2 - listRect.top
+      const bottom = listRect.bottom - (last.top + last.height / 2)
+      list.style.setProperty('--spine-top', `${top}px`)
+      list.style.setProperty('--spine-bottom', `${bottom}px`)
+    }
+
+    updateSpine()
+    const observer = new ResizeObserver(updateSpine)
+    observer.observe(list)
+    for (const entry of list.querySelectorAll('.tl-entry')) {
+      observer.observe(entry)
+    }
+    window.addEventListener('resize', updateSpine)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateSpine)
+    }
+  }, [])
 
   const clearTimer = useCallback(() => {
     if (hideTimerRef.current !== null) {
