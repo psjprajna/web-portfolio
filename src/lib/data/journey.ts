@@ -24,7 +24,6 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     side: 'left',
     logoText: 'SY',
     logoStyle: 'background: linear-gradient(135deg, #1a2744, #0c6e6a); color: #e2e8f0;',
-    logoSrc: '/logos/syneren.png',
     role: 'Software Engineer · USDOT / NHTSA Federal Contract · Virginia, USA',
     date: 'Feb 2023 — Present',
     bullets: [
