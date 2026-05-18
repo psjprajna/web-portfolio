@@ -59,7 +59,9 @@ try {
     const aboutPath = join(outDir, `${vp.name}-about.png`);
     await page.screenshot({ path: aboutPath, fullPage: false });
 
-    // Measure overlap: does .tl-list bottom exceed .arsenal-section top?
+    // Measure overlap: deepest visible Lineage descendant vs arsenal top.
+    // tl-list bbox is insufficient — entries (and absolutely-positioned dots)
+    // can overflow tl-list when space-between can't distribute them.
     const m = await page.evaluate(() => {
       const tlList = document.querySelector('.tl-list');
       const arsenal = document.querySelector('.arsenal-section');
@@ -69,24 +71,29 @@ try {
       const tlR = tlList.getBoundingClientRect();
       const arsR = arsenal.getBoundingClientRect();
       const jvR = journeyViews.getBoundingClientRect();
-      const aboutR = about.getBoundingClientRect();
+      const entries = Array.from(document.querySelectorAll('.tl-entry'));
+      const dots = Array.from(document.querySelectorAll('.tl-dot'));
+      const lastEntryBottom = entries.length ? entries.at(-1).getBoundingClientRect().bottom : 0;
+      const lastDotBottom = dots.length ? dots.at(-1).getBoundingClientRect().bottom : 0;
+      const deepestY = Math.max(tlR.bottom, lastEntryBottom, lastDotBottom);
       const cs = getComputedStyle(tlList);
       return {
         tlListHeight: Math.round(tlR.height),
         tlListBottom: Math.round(tlR.bottom),
+        lastEntryBottom: Math.round(lastEntryBottom),
+        lastDotBottom: Math.round(lastDotBottom),
+        deepestLineageY: Math.round(deepestY),
         journeyViewsHeight: Math.round(jvR.height),
         arsenalTop: Math.round(arsR.top),
-        aboutHeight: Math.round(aboutR.height),
-        overflowsArsenal: tlR.bottom > arsR.top,
-        overflowAmountPx: Math.max(0, Math.round(tlR.bottom - arsR.top)),
+        overflowsArsenal: deepestY > arsR.top,
+        overflowAmountPx: Math.max(0, Math.round(deepestY - arsR.top)),
         tlListComputedHeight: cs.height,
-        tlListFlex: cs.flex,
         lineageHeightVar: getComputedStyle(document.querySelector('.journey-area')).getPropertyValue('--lineage-height').trim(),
       };
     });
     measurements.push({ viewport: vp.name, ...m });
 
-    console.log(`  ✓ ${vp.name} (${vp.width}×${vp.height})${m?.overflowsArsenal ? ` ⚠ OVERLAP +${m.overflowAmountPx}px` : ''}`);
+    console.log(`  ✓ ${vp.name} (${vp.width}×${vp.height})${m?.overflowsArsenal ? ` ⚠ OVERLAP +${m.overflowAmountPx}px (deepest=${m.deepestLineageY}, arsenal=${m.arsenalTop})` : ''}`);
     await ctx.close();
   }
 } finally {
