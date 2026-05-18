@@ -5,11 +5,6 @@ import { JOURNEY_ENTRIES, type JourneyEntry } from '@/lib/data/journey'
 
 const MOUSE_LEAVE_GRACE_MS = 200
 
-// Vertical budget (px) consumed by chrome around the Lineage timeline at
-// desktop widths: navbar, #about top padding, lineage-heading block,
-// Arsenal section, #about bottom padding, footer reserved space.
-// Tunable in Issue 2 when Arsenal gets its viewport-fit grid restructure.
-const VERTICAL_BUDGET_RESERVED_PX = 480
 const LINEAGE_HEIGHT_MIN_PX = 320
 const LINEAGE_HEIGHT_MAX_PX = 640
 
@@ -30,13 +25,19 @@ export function LineageTimeline() {
     const list = listRef.current
     if (!list) return
     const journeyArea = list.closest('.journey-area') as HTMLElement | null
+    const journeyViews = journeyArea?.querySelector<HTMLElement>('.journey-views') ?? null
 
-    // Viewport-driven lineage height — spine length never changes with content.
+    // Lineage height = the actual rendered height of the .journey-views grid cell.
+    // That cell is sized by #about's `1fr auto` row grid (bio-section gets whatever
+    // Arsenal doesn't take), so measuring it gives the exact space available for
+    // the spine — fits Lineage + Arsenal in one viewport at any desktop size.
     function updateLineageHeight() {
-      if (!journeyArea) return
+      if (!journeyArea || !journeyViews) return
+      const available = journeyViews.getBoundingClientRect().height
+      if (available <= 0) return
       const computed = Math.min(
         LINEAGE_HEIGHT_MAX_PX,
-        Math.max(LINEAGE_HEIGHT_MIN_PX, window.innerHeight - VERTICAL_BUDGET_RESERVED_PX),
+        Math.max(LINEAGE_HEIGHT_MIN_PX, available),
       )
       journeyArea.style.setProperty('--lineage-height', `${computed}px`)
     }
@@ -62,6 +63,7 @@ export function LineageTimeline() {
       updateSpine()
     })
     observer.observe(list)
+    if (journeyViews) observer.observe(journeyViews)
     for (const entry of list.querySelectorAll('.tl-entry')) {
       observer.observe(entry)
     }
