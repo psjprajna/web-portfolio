@@ -1091,7 +1091,13 @@ body.chat-open { overflow: hidden; }
    RESPONSIVE
    ============================================================ */
 
-@media (max-width: 1199px) {
+/* Fall through to iPad/mobile layout on (a) narrow widths AND (b) short
+   heights — the desktop fixed-spine + Arsenal pattern needs ~880px of vertical
+   room to avoid Lineage entries overflowing into Arsenal at desktop widths
+   (1200-1440 with height ≤800 reproduces the bug; ≥900 fits). Catching
+   max-height: 879px sends those viewports through the single-rail layout
+   which scrolls naturally — no overlap, no content compression. */
+@media (max-width: 1199px), (max-height: 879px) {
   html { scroll-snap-type: none; }
   section.deck-section { scroll-snap-align: none; min-height: auto; }
 
