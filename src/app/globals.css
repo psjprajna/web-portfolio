@@ -454,8 +454,16 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   min-height: 0;
   transition: grid-template-columns 0.8s cubic-bezier(.22,1,.36,1);
 }
+/* In detail mode, col 1 must stay ≥ side-left card overflow so the timeline
+   stays inside journey-area. Cards have natural width ~155px and tl-list is
+   168px; side-left .tl-entry { padding-right: calc(50% + 18px) } pushes card
+   content to ~89px LEFT of tl-list.left. Collapsing col 1 to 0fr (prior value)
+   let those cards spill into the bio column gap and onto bio text. 130px col 1
+   absorbs the overflow + scoots the whole timeline right by ~10px from its
+   collapsed position. Tuned together with .detail-card margin-left so the
+   detail card stays inside #about's content area down to 1366x900. */
 .journey-area[data-mode="detail"] .journey-views {
-  grid-template-columns: 0fr auto 1fr;
+  grid-template-columns: 130px auto 1fr;
 }
 
 .timeline-view {
@@ -570,7 +578,7 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   position: relative;
   max-width: 280px;
   width: 100%;
-  margin-left: 48px;
+  margin-left: 50px;
   margin-top: var(--spine-top, 28px);
   margin-bottom: var(--spine-bottom, 62px);
   opacity: 0;
