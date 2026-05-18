@@ -18,7 +18,7 @@ export interface JourneyEntry {
 export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   {
     key: 'syneren',
-    place: 'Syneren Technology',
+    place: 'Syneren Tech',
     shortRole: 'Software Engineer',
     type: 'work',
     side: 'left',
@@ -35,7 +35,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   {
     key: 'scale-ai',
     place: 'Scale AI',
-    shortRole: 'RLHF Lead (OpenAI)',
+    shortRole: 'Team Lead',
     type: 'work',
     side: 'right',
     logoText: 'SA',
@@ -51,7 +51,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   },
   {
     key: 'george-mason',
-    place: 'George Mason University',
+    place: 'GMU',
     shortRole: 'MS Data Analytics',
     type: 'edu',
     side: 'left',
@@ -70,8 +70,8 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   },
   {
     key: 'mitre',
-    place: 'The MITRE Corporation',
-    shortRole: 'Data Engineer Intern',
+    place: 'MITRE',
+    shortRole: 'Project Intern',
     type: 'work',
     side: 'right',
     logoText: 'MI',
@@ -105,7 +105,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   {
     key: 'nmit',
     place: 'NMIT',
-    shortRole: 'B.E. Computer Science',
+    shortRole: 'BE Computer Science',
     type: 'edu',
     side: 'right',
     logoText: 'N',
