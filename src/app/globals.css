@@ -454,16 +454,13 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   min-height: 0;
   transition: grid-template-columns 0.8s cubic-bezier(.22,1,.36,1);
 }
-/* In detail mode, col 1 must stay ≥ side-left card overflow so the timeline
-   stays inside journey-area. Cards have natural width ~155px and tl-list is
-   168px; side-left .tl-entry { padding-right: calc(50% + 18px) } pushes card
-   content to ~89px LEFT of tl-list.left. Collapsing col 1 to 0fr (prior value)
-   let those cards spill into the bio column gap and onto bio text. 130px col 1
-   absorbs the overflow + scoots the whole timeline right by ~10px from its
-   collapsed position. Tuned together with .detail-card margin-left so the
-   detail card stays inside #about's content area down to 1366x900. */
+/* In detail mode, col 1 must absorb the side-left card overflow (cards extend
+   ~89px LEFT of tl-list via .tl-entry padding-right calc(50% + 18px)). 100px
+   keeps the timeline as far left as safe while leaving an 11px buffer past
+   the bio gap so cards never touch bio. The symmetric side-right overflow
+   (89px) is handled by .detail-card margin-left, not by this column. */
 .journey-area[data-mode="detail"] .journey-views {
-  grid-template-columns: 130px auto 1fr;
+  grid-template-columns: 100px auto 1fr;
 }
 
 .timeline-view {
@@ -578,7 +575,9 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   position: relative;
   max-width: 280px;
   width: 100%;
-  margin-left: 50px;
+  /* 72px clears the side-right card overflow (89px) when added to the
+     24px column gap (24+72=96 > 89), keeping detail card in its own lane. */
+  margin-left: 72px;
   margin-top: var(--spine-top, 28px);
   margin-bottom: var(--spine-bottom, 62px);
   opacity: 0;
