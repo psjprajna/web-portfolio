@@ -5,7 +5,7 @@ import { JOURNEY_ENTRIES, type JourneyEntry } from '@/lib/data/journey'
 
 const MOUSE_LEAVE_GRACE_MS = 200
 
-const LINEAGE_HEIGHT_MIN_PX = 320
+const LINEAGE_HEIGHT_MIN_PX = 260
 const LINEAGE_HEIGHT_MAX_PX = 640
 
 export function LineageTimeline() {
@@ -26,14 +26,21 @@ export function LineageTimeline() {
     if (!list) return
     const journeyArea = list.closest('.journey-area') as HTMLElement | null
     const journeyViews = journeyArea?.querySelector<HTMLElement>('.journey-views') ?? null
+    const about = journeyArea?.closest<HTMLElement>('#about') ?? null
+    const arsenal = about?.querySelector<HTMLElement>('.arsenal-section') ?? null
 
-    // Lineage height = the actual rendered height of the .journey-views grid cell.
-    // That cell is sized by #about's `1fr auto` row grid (bio-section gets whatever
-    // Arsenal doesn't take), so measuring it gives the exact space available for
-    // the spine — fits Lineage + Arsenal in one viewport at any desktop size.
+    // Lineage height = the vertical distance from journey-views top to arsenal top,
+    // minus #about's row-gap. Measuring journey-views.height directly is circular:
+    // its height grows to fit the (set-height) .tl-list child, so an oversized
+    // --lineage-height re-validates itself instead of being corrected. The arsenal
+    // section is on grid row 2 (auto), its top reflects the true bio-section row
+    // allocation regardless of overflow — that's the ceiling we must respect.
     function updateLineageHeight() {
-      if (!journeyArea || !journeyViews) return
-      const available = journeyViews.getBoundingClientRect().height
+      if (!journeyArea || !journeyViews || !about || !arsenal) return
+      const jvTop = journeyViews.getBoundingClientRect().top
+      const arsenalTop = arsenal.getBoundingClientRect().top
+      const rowGapPx = parseFloat(getComputedStyle(about).rowGap) || 0
+      const available = arsenalTop - jvTop - rowGapPx
       if (available <= 0) return
       const computed = Math.min(
         LINEAGE_HEIGHT_MAX_PX,
@@ -64,6 +71,7 @@ export function LineageTimeline() {
     })
     observer.observe(list)
     if (journeyViews) observer.observe(journeyViews)
+    if (arsenal) observer.observe(arsenal)
     for (const entry of list.querySelectorAll('.tl-entry')) {
       observer.observe(entry)
     }
