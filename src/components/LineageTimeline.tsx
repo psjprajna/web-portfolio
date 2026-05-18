@@ -5,6 +5,14 @@ import { JOURNEY_ENTRIES, type JourneyEntry } from '@/lib/data/journey'
 
 const MOUSE_LEAVE_GRACE_MS = 200
 
+// Vertical budget (px) consumed by chrome around the Lineage timeline at
+// desktop widths: navbar, #about top padding, lineage-heading block,
+// Arsenal section, #about bottom padding, footer reserved space.
+// Tunable in Issue 2 when Arsenal gets its viewport-fit grid restructure.
+const VERTICAL_BUDGET_RESERVED_PX = 480
+const LINEAGE_HEIGHT_MIN_PX = 320
+const LINEAGE_HEIGHT_MAX_PX = 640
+
 export function LineageTimeline() {
   const [pinnedKey, setPinnedKey] = useState<string | null>(null)
   const [hoverKey, setHoverKey] = useState<string | null>(null)
@@ -21,6 +29,17 @@ export function LineageTimeline() {
   useEffect(() => {
     const list = listRef.current
     if (!list) return
+    const journeyArea = list.closest('.journey-area') as HTMLElement | null
+
+    // Viewport-driven lineage height — spine length never changes with content.
+    function updateLineageHeight() {
+      if (!journeyArea) return
+      const computed = Math.min(
+        LINEAGE_HEIGHT_MAX_PX,
+        Math.max(LINEAGE_HEIGHT_MIN_PX, window.innerHeight - VERTICAL_BUDGET_RESERVED_PX),
+      )
+      journeyArea.style.setProperty('--lineage-height', `${computed}px`)
+    }
 
     function updateSpine() {
       if (!list) return
@@ -31,22 +50,29 @@ export function LineageTimeline() {
       const listRect = list.getBoundingClientRect()
       const top = first.top + first.height / 2 - listRect.top
       const bottom = listRect.bottom - (last.top + last.height / 2)
-      const journeyArea = list.closest('.journey-area') as HTMLElement | null
       const target = journeyArea ?? list
       target.style.setProperty('--spine-top', `${top}px`)
       target.style.setProperty('--spine-bottom', `${bottom}px`)
     }
 
+    updateLineageHeight()
     updateSpine()
-    const observer = new ResizeObserver(updateSpine)
+    const observer = new ResizeObserver(() => {
+      updateLineageHeight()
+      updateSpine()
+    })
     observer.observe(list)
     for (const entry of list.querySelectorAll('.tl-entry')) {
       observer.observe(entry)
     }
-    window.addEventListener('resize', updateSpine)
+    function onResize() {
+      updateLineageHeight()
+      updateSpine()
+    }
+    window.addEventListener('resize', onResize)
     return () => {
       observer.disconnect()
-      window.removeEventListener('resize', updateSpine)
+      window.removeEventListener('resize', onResize)
     }
   }, [])
 

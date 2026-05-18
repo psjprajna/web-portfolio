@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+// Capture screenshots of localhost:3000 at 4 viewports.
+// Usage: node scripts/screenshot.mjs <label>
+//   label → subdirectory name under ../.claude/screenshots/
+// Example: node scripts/screenshot.mjs 00-baseline
+
+import { chromium } from 'playwright';
+import { mkdir } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+
+const VIEWPORTS = [
+  { name: 'desktop-1440x900', width: 1440, height: 900 },
+  { name: 'desktop-1920x1080', width: 1920, height: 1080 },
+  { name: 'ipad-768x1024', width: 768, height: 1024 },
+  { name: 'mobile-390x844', width: 390, height: 844 },
+];
+
+const URL = process.env.SCREENSHOT_URL ?? 'http://localhost:3000/';
+const label = process.argv[2];
+if (!label) {
+  console.error('usage: node scripts/screenshot.mjs <label>');
+  process.exit(1);
+}
+
+const outDir = resolve(import.meta.dirname, '../../.claude/screenshots', label);
+await mkdir(outDir, { recursive: true });
+
+const browser = await chromium.launch();
+try {
+  for (const vp of VIEWPORTS) {
+    const ctx = await browser.newContext({
+      viewport: { width: vp.width, height: vp.height },
+      deviceScaleFactor: 2,
+      colorScheme: 'light',
+    });
+    const page = await ctx.newPage();
+    await page.goto(URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(800);
+
+    // Full-page first
+    const fullPath = join(outDir, `${vp.name}-full.png`);
+    await page.screenshot({ path: fullPath, fullPage: true });
+
+    // Viewport-only (what user sees without scrolling)
+    const viewportPath = join(outDir, `${vp.name}-viewport.png`);
+    await page.screenshot({ path: viewportPath, fullPage: false });
+
+    // Scroll to #about and capture viewport-only
+    await page.evaluate(() => document.getElementById('about')?.scrollIntoView({ behavior: 'instant' }));
+    await page.waitForTimeout(400);
+    const aboutPath = join(outDir, `${vp.name}-about.png`);
+    await page.screenshot({ path: aboutPath, fullPage: false });
+
+    console.log(`  ✓ ${vp.name} (${vp.width}×${vp.height})`);
+    await ctx.close();
+  }
+} finally {
+  await browser.close();
+}
+
+console.log(`\nDone → ${outDir}`);

@@ -452,7 +452,7 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   gap: 0 24px;
   flex: 1;
   min-height: 0;
-  transition: grid-template-columns 800ms cubic-bezier(.22, 1, .36, 1);
+  transition: grid-template-columns 0.8s cubic-bezier(.22,1,.36,1);
 }
 .journey-area[data-mode="detail"] .journey-views {
   grid-template-columns: 0fr auto 1fr;
@@ -503,22 +503,15 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .tl-card { display: flex; align-items: center; gap: 12px; }
 .tl-entry.side-left .tl-card { flex-direction: row-reverse; }
 .tl-logo {
-  width: 44px; height: 44px;
-  border-radius: 8px;
+  width: 28px; height: 28px;
+  border-radius: 7px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em;
   color: rgba(255,255,255,0.9);
-  overflow: hidden;
   transition: transform 0.25s cubic-bezier(.22,1,.36,1);
 }
 .tl-entry:hover .tl-logo, .tl-entry.is-active .tl-logo { transform: scale(1.05); }
-.tl-logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
 .tl-text {
   display: flex;
   flex-direction: row;
@@ -573,12 +566,16 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   position: relative;
   max-width: 280px;
   width: 100%;
-  max-height: 360px;
-  overflow: hidden;
   margin-left: 48px;
   margin-top: var(--spine-top, 28px);
   margin-bottom: var(--spine-bottom, 62px);
-  transition: background 0.4s;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(12px);
+  transition: opacity 0.5s ease 0.15s, transform 0.6s cubic-bezier(.22,1,.36,1) 0.15s, background 0.4s;
+}
+.journey-area[data-mode="detail"] .detail-card {
+  opacity: 1; pointer-events: auto; transform: translateX(0);
 }
 .detail-header { display: flex; flex-direction: column; gap: 8px; }
 .detail-headline { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -603,6 +600,20 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 }
 .detail-bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
 .detail-bullets li:last-child { margin-bottom: 0; }
+
+/* Issue 1.1 — viewport-driven fixed-length spine + detail card.
+   Spine length depends ONLY on viewport, never on entry/card content.
+   Scoped to desktop so tablet (≤1199px) single-rail layout is unaffected. */
+@media (min-width: 1200px) {
+  .tl-list {
+    flex: none;
+    height: var(--lineage-height, 360px);
+  }
+  .detail-card {
+    height: calc(var(--lineage-height, 360px) - var(--spine-top, 28px) - var(--spine-bottom, 62px));
+    overflow-y: auto;
+  }
+}
 
 .lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0; flex-shrink: 0; }
 
@@ -812,7 +823,6 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   padding: 0 6px;
 }
 .card-btn-spec:hover { color: var(--ink); }
-.card-btn.is-disabled { cursor: default; pointer-events: none; }
 
 /* ============================================================
    FOOTER
