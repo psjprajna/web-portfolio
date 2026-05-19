@@ -752,7 +752,8 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   grid-template-columns: auto auto 1fr auto;
   column-gap: 8px;
   row-gap: 10px;
-  align-items: center;
+  align-items: start;
+  align-content: start;
   cursor: default;
   transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s, background 0.4s;
 }
