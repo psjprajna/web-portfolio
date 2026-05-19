@@ -563,6 +563,18 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   margin-bottom: 10px;
   white-space: nowrap;
 }
+/* Mirror desktop .detail-location on iPad/mobile reveal. Parent .tl-details
+   is display:none by default and flips to block via the (max-width:1199px,
+   max-height:879px) media block at line 1220 — this child inherits that. */
+.tl-details-location {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink2);
+  letter-spacing: 0.01em;
+  opacity: 0.78;
+  margin-bottom: 8px;
+}
 .tl-details-bullets { list-style: none; padding: 0; margin: 0; }
 .tl-details-bullets li {
   font-size: 11.5px; line-height: 1.65; color: var(--ink2);

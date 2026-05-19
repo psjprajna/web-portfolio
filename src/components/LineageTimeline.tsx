@@ -239,6 +239,7 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
           </div>
         </div>
         <div className="tl-details">
+          <div className="tl-details-location">{entry.location}</div>
           <span className="tl-details-date">{entry.date}</span>
           <ul className="tl-details-bullets">
             {entry.bullets.map((bullet, i) => (
