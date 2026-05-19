@@ -393,7 +393,9 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 #about {
   display: grid;
   grid-template-rows: 1fr auto;
-  padding: 96px 48px 88px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 96px 48px 72px;
   gap: 28px;
   max-width: 1600px; margin: 0 auto; width: 100%;
   overflow: hidden;
@@ -450,10 +452,17 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   gap: 0 24px;
   flex: 1;
   min-height: 0;
-  transition: grid-template-columns 0.8s cubic-bezier(.22,1,.36,1);
+  /* Issue 4 follow-up: slowed 0.8s → 1.2s so the timeline slide feels less snappy. */
+  transition: grid-template-columns 1.2s cubic-bezier(.22,1,.36,1);
 }
+/* In detail mode, col 1 must absorb the side-left card overflow (cards extend
+   ~89px LEFT of tl-list via .tl-entry padding-right calc(50% + 18px)).
+   Issue 4 follow-up: col 1 tightened 100px → 40px to shift the whole spine + card
+   60px further left, keeping the detail card from extending into #about's right
+   gutter on wide viewports. 40px = 89px overflow - 36px bio gap - 13px safety,
+   so side-left cards have a tiny but non-zero clearance from bio-left content. */
 .journey-area[data-mode="detail"] .journey-views {
-  grid-template-columns: 0fr auto 1fr;
+  grid-template-columns: 40px auto 1fr;
 }
 
 .timeline-view {
@@ -461,8 +470,8 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   max-width: 480px;
   width: 100%;
   align-self: stretch;
-  margin-top: 17px;
-  margin-bottom: 24px;
+  margin-top: 0;
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
 }
@@ -475,24 +484,13 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .tl-list::before {
   content: '';
   position: absolute; left: 50%;
-  top: 23px; bottom: 0;
+  top: var(--spine-top, 28px);
+  bottom: var(--spine-bottom, 62px);
   width: 1px;
   background: var(--border);
   transform: translateX(-0.5px);
 }
-.tl-entry { position: relative; padding: 14px 0; display: flex; cursor: pointer; }
-.tl-entry:last-child::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 28px;
-  bottom: -2px;
-  width: 3px;
-  background: var(--cream);
-  transform: translateX(-1.5px);
-  z-index: 1;
-  pointer-events: none;
-}
+.tl-entry { position: relative; padding: 8px 0; display: flex; cursor: pointer; }
 .tl-entry.side-left  { padding-right: calc(50% + 18px); justify-content: flex-end; }
 .tl-entry.side-right { padding-left:  calc(50% + 18px); justify-content: flex-start; }
 .tl-entry-content { display: flex; flex-direction: column; max-width: 100%; min-width: 0; }
@@ -521,19 +519,29 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   transition: transform 0.25s cubic-bezier(.22,1,.36,1);
 }
 .tl-entry:hover .tl-logo, .tl-entry.is-active .tl-logo { transform: scale(1.05); }
+/* Predictable column stack: place over role, each one line tall. The previous
+   row+wrap layout made entry heights width-dependent — at desktop's 50%-width
+   cards, Syneren/NMIT wrapped place text across 2 lines (place on row 1+2, role
+   on row 3), ballooning entries to 81px and overflowing tl-list onto Arsenal.
+   Column layout is uniform across viewports, matching the iPad single-rail
+   shape. white-space:nowrap on each child guarantees one line per element. */
 .tl-text {
   display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 8px;
+  flex-direction: column;
   row-gap: 2px;
   min-width: 0;
+  width: 100%;
 }
-.tl-entry.side-left .tl-text { justify-content: flex-end; text-align: right; }
-.tl-entry.side-right .tl-text { justify-content: flex-start; text-align: left; }
-.tl-place { font-family: var(--serif); font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1.3; }
-.tl-role  { font-family: var(--sans);  font-size: 10.5px; font-weight: 500; color: var(--ink2); line-height: 1.4; }
+.tl-entry.side-left .tl-text { align-items: flex-end; text-align: right; }
+.tl-entry.side-right .tl-text { align-items: flex-start; text-align: left; }
+.tl-place { font-family: var(--serif); font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1.3; white-space: nowrap; }
+.tl-role  { font-family: var(--sans);  font-size: 10.5px; font-weight: 500; color: var(--ink2); line-height: 1.4; white-space: nowrap; }
+/* Issue 3.1: dual-render short / long forms. Defaults below apply on desktop;
+   the iPad/mobile/short-desktop media block at ~line 1111 swaps visibility. */
+.tl-place--long,
+.tl-role--long { display: none; }
+.tl-place--long { white-space: pre-line; }  /* honor \n in "George Mason\nUniversity" */
+.tl-role--long  { white-space: normal; }    /* allow natural wrap on narrow mobile widths */
 
 .tl-details {
   display: none;
@@ -555,6 +563,18 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   margin-bottom: 10px;
   white-space: nowrap;
 }
+/* Mirror desktop .detail-location on iPad/mobile reveal. Parent .tl-details
+   is display:none by default and flips to block via the (max-width:1199px,
+   max-height:879px) media block at line 1220 — this child inherits that. */
+.tl-details-location {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink2);
+  letter-spacing: 0.01em;
+  opacity: 0.78;
+  margin-bottom: 8px;
+}
 .tl-details-bullets { list-style: none; padding: 0; margin: 0; }
 .tl-details-bullets li {
   font-size: 11.5px; line-height: 1.65; color: var(--ink2);
@@ -565,31 +585,56 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 
 .detail-card {
   grid-column: 3;
-  align-self: stretch;
+  align-self: start;
   justify-self: start;
   background: var(--warm-white);
   border-radius: 14px;
   box-shadow: 0 20px 50px var(--shadow-pop), 0 2px 6px var(--shadow-card);
-  padding: 22px 22px;
+  /* Issue 4 follow-up: padding 22→18 vertical (saves 8px) lets Syneren fit
+     at 1920×1080. Horizontal stays 22px to preserve text gutters. */
+  padding: 18px 22px;
   display: flex; flex-direction: column;
   position: relative;
-  max-width: 280px;
+  /* Issue 4 follow-up: fluid card width via clamp() so the card scales with
+     viewport instead of feeling tiny on wide screens / cramped on narrow.
+     Anchored at 1440px viewport: 22vw = 316.8px (matches the prior fixed 320px).
+     Ceiling tightened 400 → 380 to keep cardRight inside #about content-right
+     at 1920+ (paired with the 60px leftward shift via journey-views col 1). */
+  max-width: clamp(280px, 22vw, 380px);
   width: 100%;
-  margin-left: 48px;
-  margin-top: 17px;
-  margin-bottom: 24px;
+  /* Fluid right-shift — keeps the card visually balanced as the viewport grows.
+     6.4vw at 1440 = 92.16 (matches the prior fixed 92px). Floor 72px / ceil 120px.
+     Clearance math still holds at the floor: 72 + 24px column-gap = 96 > 89 right-overflow. */
+  margin-left: clamp(72px, 6.4vw, 120px);
+  margin-top: var(--spine-top, 28px);
+  margin-bottom: var(--spine-bottom, 62px);
   opacity: 0;
   pointer-events: none;
   transform: translateX(12px);
-  transition: opacity 0.5s ease 0.15s, transform 0.6s cubic-bezier(.22,1,.36,1) 0.15s, background 0.4s;
+  /* Issue 4 follow-up: scaled timings ~1.5x for a less-snappy hover reveal,
+     and delay 0.15s → 0.2s so the card-after-timeline stagger still reads at the slower pace. */
+  transition: opacity 0.75s ease 0.2s, transform 0.9s cubic-bezier(.22,1,.36,1) 0.2s, background 0.4s;
 }
 .journey-area[data-mode="detail"] .detail-card {
   opacity: 1; pointer-events: auto; transform: translateX(0);
 }
 .detail-header { display: flex; flex-direction: column; gap: 8px; }
 .detail-headline { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.detail-place { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); }
+/* Issue 3.1: pre-line lets the same "George Mason\nUniversity" / "Nitte Meenakshi\nInstitute of Technology"
+   data wrap consistently in both lineage cards and the desktop detail card. */
+/* Fluid heading — 1.4vw at 1440 = 20.16 (matches the prior fixed 20px).
+   Floor 18px / ceil 22px to keep proportional with body text scaling. */
+.detail-place { font-family: var(--serif); font-size: clamp(18px, 1.4vw, 22px); font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); white-space: pre-line; }
 .detail-role  { font-family: var(--sans);  font-size: 11.5px; font-weight: 500; color: var(--ink2); }
+.detail-location {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink2);
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+  opacity: 0.78;
+}
 .detail-date {
   align-self: flex-start;
   font-family: var(--sans);
@@ -601,16 +646,39 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   border-radius: 100px;
   white-space: nowrap;
 }
-.detail-rule { height: 1px; background: var(--border-soft); margin: 14px 0 14px; }
+/* Issue 3.1: Robust 1px separator. The previous height:1px + background approach
+   collapsed to 0 in flex-column parents (flex-shrink: 1 + min-height: auto eats
+   the 1px). Using border-top renders independent of computed height.
+   Issue 4 follow-up: 14px→10px to reclaim ~8px of vertical room at 1440×900. */
+.detail-rule { height: 0; border-top: 1px solid var(--border-soft); margin: 10px 0; flex-shrink: 0; }
 .detail-bullets { list-style: none; padding: 0; }
+/* Issue 4 follow-up: tightened line-height 1.7→1.55 and margin-bottom 10→7
+   to reduce overflow at 1440×900 without dropping font-size below 11.5px.
+   1.55 stays above the industry-standard 1.5 readability floor for body copy.
+   Fluid font: 0.8vw at 1440 = 11.52 (matches prior 11.5). Floor 11.5px / ceil 13px.
+   line-height stays as a ratio so it scales with the fluid font automatically. */
 .detail-bullets li {
-  font-size: 11.5px; line-height: 1.7; color: var(--ink2);
-  padding-left: 14px; position: relative; margin-bottom: 10px;
+  font-size: clamp(11.5px, 0.8vw, 13px); line-height: 1.55; color: var(--ink2);
+  padding-left: 14px; position: relative; margin-bottom: 7px;
 }
 .detail-bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
 .detail-bullets li:last-child { margin-bottom: 0; }
 
-.lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; flex-shrink: 0; }
+/* Issue 1.1 — viewport-driven fixed-length spine + detail card.
+   Spine length depends ONLY on viewport, never on entry/card content.
+   Scoped to desktop so tablet (≤1199px) single-rail layout is unaffected. */
+@media (min-width: 1200px) {
+  .tl-list {
+    flex: none;
+    height: var(--lineage-height, 360px);
+  }
+  .detail-card {
+    height: calc(var(--lineage-height, 360px) - var(--spine-top, 28px) - var(--spine-bottom, 62px));
+    overflow-y: auto;
+  }
+}
+
+.lineage-heading { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0; flex-shrink: 0; }
 
 .lineage-hint {
   display: inline-flex;
@@ -684,7 +752,8 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   grid-template-columns: auto auto 1fr auto;
   column-gap: 8px;
   row-gap: 10px;
-  align-items: center;
+  align-items: start;
+  align-content: start;
   cursor: default;
   transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s, background 0.4s;
 }
@@ -1086,7 +1155,13 @@ body.chat-open { overflow: hidden; }
    RESPONSIVE
    ============================================================ */
 
-@media (max-width: 1199px) {
+/* Fall through to iPad/mobile layout on (a) narrow widths AND (b) short
+   heights — the desktop fixed-spine + Arsenal pattern needs ~880px of vertical
+   room to avoid Lineage entries overflowing into Arsenal at desktop widths
+   (1200-1440 with height ≤800 reproduces the bug; ≥900 fits). Catching
+   max-height: 879px sends those viewports through the single-rail layout
+   which scrolls naturally — no overlap, no content compression. */
+@media (max-width: 1199px), (max-height: 879px) {
   html { scroll-snap-type: none; }
   section.deck-section { scroll-snap-align: none; min-height: auto; }
 
@@ -1102,8 +1177,11 @@ body.chat-open { overflow: hidden; }
   .hero-soc-block { right: 32px; bottom: 32px; }
   .scroll-hint { bottom: 18px; }
 
+  /* Issue 2 — reset desktop 100vh lock at tablet/mobile so Arsenal flows in
+     normal block flow above Projects instead of overflowing into it. */
   #about {
     display: block;
+    height: auto;
     padding: 88px 32px 72px;
     overflow: visible;
     max-width: 1100px;
@@ -1112,7 +1190,7 @@ body.chat-open { overflow: hidden; }
   .bio-heading { font-size: clamp(34px, 5vw, 44px); }
   .arsenal-title { font-size: 22px; }
   .arsenal-heading-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .arsenal-sub { white-space: normal; }
+  .arsenal-sub { white-space: normal; align-self: flex-end; text-align: right; }
   .lineage-title { font-size: 22px; }
   .skill-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
@@ -1139,11 +1217,31 @@ body.chat-open { overflow: hidden; }
   .tl-entry.side-right .tl-entry-content { align-items: flex-start; width: 100%; }
   .tl-entry.side-left .tl-card,
   .tl-entry.side-right .tl-card { flex-direction: row; }
+  /* Issue 3.1 follow-up: on single-rail iPad/mobile, BOTH sides anchor to the
+     left of the text column. align-items resets the desktop side-left rule
+     (flex-end on .tl-text from line 533) — text-align alone is not enough
+     because .tl-text is flex-direction: column, so cross-axis alignment of
+     the <span> children is controlled by align-items, not text-align. */
   .tl-entry.side-left .tl-text,
-  .tl-entry.side-right .tl-text { text-align: left; justify-content: flex-start; }
+  .tl-entry.side-right .tl-text {
+    text-align: left;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
   .tl-dot { left: 16px; }
 
   .tl-entry.is-active .tl-details { display: block; }
+
+  /* Issue 3.1: iPad/mobile/short-desktop swap — hide short form, reveal full legal name + full role. */
+  .tl-place--short,
+  .tl-role--short { display: none; }
+  .tl-place--long,
+  .tl-role--long  { display: block; }
+  /* Issue 3.1 follow-up: on single-rail layouts there is full row width for
+     the place text, so collapse the desktop wrap-hint \n (from "George Mason\n
+     University") into a space. Desktop detail card .detail-place keeps
+     pre-line so the explicit wrap still controls the narrow popover. */
+  .tl-place--long { white-space: normal; }
 
   #projects { padding: 88px 32px 72px; overflow: visible; min-height: auto; }
   .projects-grid { grid-auto-rows: auto; }
@@ -1230,7 +1328,8 @@ body.chat-open { overflow: hidden; }
 
   .arsenal-section { margin-top: 16px; }
   .arsenal-heading-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .arsenal-sub { white-space: normal; }
+  /* Explicit reset: undo the right-align rule from the tablet block (line 1193). */
+  .arsenal-sub { white-space: normal; align-self: flex-start; text-align: left; }
   .skill-grid { grid-template-columns: repeat(2, 1fr); }
 
   #projects {
