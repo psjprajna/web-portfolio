@@ -1184,18 +1184,31 @@ body.chat-open { overflow: hidden; }
   .tl-entry.side-right .tl-entry-content { align-items: flex-start; width: 100%; }
   .tl-entry.side-left .tl-card,
   .tl-entry.side-right .tl-card { flex-direction: row; }
+  /* Issue 3.1 follow-up: on single-rail iPad/mobile, BOTH sides anchor to the
+     left of the text column. align-items resets the desktop side-left rule
+     (flex-end on .tl-text from line 533) — text-align alone is not enough
+     because .tl-text is flex-direction: column, so cross-axis alignment of
+     the <span> children is controlled by align-items, not text-align. */
   .tl-entry.side-left .tl-text,
-  .tl-entry.side-right .tl-text { text-align: left; justify-content: flex-start; }
+  .tl-entry.side-right .tl-text {
+    text-align: left;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
   .tl-dot { left: 16px; }
 
   .tl-entry.is-active .tl-details { display: block; }
 
-  /* Issue 3.1: iPad/mobile/short-desktop swap — hide short form, reveal full legal name + full role.
-     .tl-place--long uses pre-line for the embedded \n (edu names ≥ 3 words break at the 2-word mark). */
+  /* Issue 3.1: iPad/mobile/short-desktop swap — hide short form, reveal full legal name + full role. */
   .tl-place--short,
   .tl-role--short { display: none; }
   .tl-place--long,
   .tl-role--long  { display: block; }
+  /* Issue 3.1 follow-up: on single-rail layouts there is full row width for
+     the place text, so collapse the desktop wrap-hint \n (from "George Mason\n
+     University") into a space. Desktop detail card .detail-place keeps
+     pre-line so the explicit wrap still controls the narrow popover. */
+  .tl-place--long { white-space: normal; }
 
   #projects { padding: 88px 32px 72px; overflow: visible; min-height: auto; }
   .projects-grid { grid-auto-rows: auto; }
