@@ -66,7 +66,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   {
     key: 'george-mason',
     place: 'GMU',
-    placeLong: 'George Mason\nUniversity',
+    placeLong: 'George Mason University',
     shortRole: 'MS Data Analytics',
     role: 'M.S. Data Analytics',
     location: 'Virginia, USA',
