@@ -18,8 +18,8 @@ export function Hero() {
       </h1>
 
       <p className="hero-tagline">
-        Applied AI Engineer building <CyclingPhrase /> that actually ship — 3+ years, 10+
-        models in production.
+        AI/ML Engineer building <CyclingPhrase /> for production — 3+ years across U.S.
+        federal AI (NHTSA) and OpenAI frontier-model training at Scale AI.
       </p>
 
       <div className="hero-actions">

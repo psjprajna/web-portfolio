@@ -5,10 +5,14 @@ import { JOURNEY_ENTRIES, type JourneyEntry } from '@/lib/data/journey'
 
 const MOUSE_LEAVE_GRACE_MS = 200
 
+const LINEAGE_HEIGHT_MIN_PX = 260
+const LINEAGE_HEIGHT_MAX_PX = 640
+
 export function LineageTimeline() {
   const [pinnedKey, setPinnedKey] = useState<string | null>(null)
   const [hoverKey, setHoverKey] = useState<string | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const listRef = useRef<HTMLOListElement | null>(null)
 
   const activeKey = hoverKey ?? pinnedKey
   const activeEntry = useMemo(
@@ -16,6 +20,71 @@ export function LineageTimeline() {
     [activeKey],
   )
   const mode: 'detail' | 'timeline' = activeKey ? 'detail' : 'timeline'
+
+  useEffect(() => {
+    const list = listRef.current
+    if (!list) return
+    const journeyArea = list.closest('.journey-area') as HTMLElement | null
+    const journeyViews = journeyArea?.querySelector<HTMLElement>('.journey-views') ?? null
+    const about = journeyArea?.closest<HTMLElement>('#about') ?? null
+    const arsenal = about?.querySelector<HTMLElement>('.arsenal-section') ?? null
+
+    // Lineage height = the vertical distance from journey-views top to arsenal top,
+    // minus #about's row-gap. Measuring journey-views.height directly is circular:
+    // its height grows to fit the (set-height) .tl-list child, so an oversized
+    // --lineage-height re-validates itself instead of being corrected. The arsenal
+    // section is on grid row 2 (auto), its top reflects the true bio-section row
+    // allocation regardless of overflow — that's the ceiling we must respect.
+    function updateLineageHeight() {
+      if (!journeyArea || !journeyViews || !about || !arsenal) return
+      const jvTop = journeyViews.getBoundingClientRect().top
+      const arsenalTop = arsenal.getBoundingClientRect().top
+      const rowGapPx = parseFloat(getComputedStyle(about).rowGap) || 0
+      const available = arsenalTop - jvTop - rowGapPx
+      if (available <= 0) return
+      const computed = Math.min(
+        LINEAGE_HEIGHT_MAX_PX,
+        Math.max(LINEAGE_HEIGHT_MIN_PX, available),
+      )
+      journeyArea.style.setProperty('--lineage-height', `${computed}px`)
+    }
+
+    function updateSpine() {
+      if (!list) return
+      const dots = list.querySelectorAll<HTMLElement>('.tl-dot')
+      if (dots.length < 2) return
+      const first = dots[0]!.getBoundingClientRect()
+      const last = dots[dots.length - 1]!.getBoundingClientRect()
+      const listRect = list.getBoundingClientRect()
+      const top = first.top + first.height / 2 - listRect.top
+      const bottom = listRect.bottom - (last.top + last.height / 2)
+      const target = journeyArea ?? list
+      target.style.setProperty('--spine-top', `${top}px`)
+      target.style.setProperty('--spine-bottom', `${bottom}px`)
+    }
+
+    updateLineageHeight()
+    updateSpine()
+    const observer = new ResizeObserver(() => {
+      updateLineageHeight()
+      updateSpine()
+    })
+    observer.observe(list)
+    if (journeyViews) observer.observe(journeyViews)
+    if (arsenal) observer.observe(arsenal)
+    for (const entry of list.querySelectorAll('.tl-entry')) {
+      observer.observe(entry)
+    }
+    function onResize() {
+      updateLineageHeight()
+      updateSpine()
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
 
   const clearTimer = useCallback(() => {
     if (hideTimerRef.current !== null) {
@@ -87,7 +156,7 @@ export function LineageTimeline() {
 
       <div className="journey-views">
         <div className="timeline-view">
-          <ol className="tl-list">
+          <ol className="tl-list" ref={listRef}>
             {JOURNEY_ENTRIES.map((entry) => (
               <TimelineEntry
                 key={entry.key}
@@ -108,8 +177,9 @@ export function LineageTimeline() {
         >
           <div className="detail-header">
             <div className="detail-headline">
-              <div className="detail-place">{activeEntry.place}</div>
+              <div className="detail-place">{activeEntry.placeLong}</div>
               <div className="detail-role">{activeEntry.role}</div>
+              <div className="detail-location">{activeEntry.location}</div>
             </div>
             <span className="detail-date">{activeEntry.date}</span>
           </div>
@@ -147,15 +217,29 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
       <span className={`tl-dot t-${entry.type}`} aria-hidden="true" />
       <div className="tl-entry-content">
         <div className="tl-card">
-          <div className="tl-logo" style={parseInlineStyle(entry.logoStyle)}>
-            {entry.logoText}
+          <div
+            className="tl-logo"
+            style={entry.logoSrc ? undefined : parseInlineStyle(entry.logoStyle)}
+          >
+            {entry.logoSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={entry.logoSrc} alt={entry.place} className="tl-logo-img" />
+            ) : (
+              entry.logoText
+            )}
           </div>
           <div className="tl-text">
-            <span className="tl-place">{entry.place}</span>
-            <span className="tl-role">{entry.shortRole}</span>
+            {/* Dual-render: desktop shows --short, iPad/mobile shows --long.
+                Toggled via display rules in globals.css (.tl-place--long / .tl-role--long
+                are display:none by default and display:block inside the 1199px / 879px media block). */}
+            <span className="tl-place tl-place--short">{entry.place}</span>
+            <span className="tl-place tl-place--long">{entry.placeLong}</span>
+            <span className="tl-role tl-role--short">{entry.shortRole}</span>
+            <span className="tl-role tl-role--long">{entry.role}</span>
           </div>
         </div>
         <div className="tl-details">
+          <div className="tl-details-location">{entry.location}</div>
           <span className="tl-details-date">{entry.date}</span>
           <ul className="tl-details-bullets">
             {entry.bullets.map((bullet, i) => (
@@ -168,8 +252,6 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
   )
 }
 
-// React requires camelCase keys for inline style objects; the prototype stored
-// raw CSS strings, so parse them here at the boundary.
 function parseInlineStyle(css: string): React.CSSProperties {
   const result: Record<string, string> = {}
   for (const decl of css.split(';')) {

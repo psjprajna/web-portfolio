@@ -3,113 +3,136 @@ export type JourneySide = 'left' | 'right'
 
 export interface JourneyEntry {
   key: string
+  // place: short form rendered in the desktop lineage timeline cards.
+  // placeLong: full legal name rendered in iPad/mobile lineage cards AND in the desktop detail card.
+  //   Education names ≥ 3 words use an embedded \n to break at the 2-word mark;
+  //   .tl-place--long and .detail-place honor this via white-space: pre-line.
   place: string
+  placeLong: string
   shortRole: string
+  // role: title-only (no location decorator). Location lives in its own field.
+  role: string
+  // location: state-level place of work (e.g. "Virginia, USA", "Bengaluru, India", "Remote, USA").
+  location: string
   type: JourneyType
   side: JourneySide
   logoText: string
   logoStyle: string
-  role: string
+  logoSrc?: string
   date: string
-  bullets: readonly [string, string, string]
+  // 1-3 bullets. Education entries often need only 1; internships 2; full roles 3.
+  bullets: readonly [string, string?, string?]
 }
 
 export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
   {
-    key: 'presight',
-    place: 'Presight AI',
-    shortRole: 'AI Engineer',
+    key: 'syneren',
+    place: 'Syneren Tech',
+    placeLong: 'Syneren Technology Corporation',
+    shortRole: 'Software Engineer',
+    role: 'Software Engineer',
+    location: 'Virginia, USA',
     type: 'work',
     side: 'left',
-    logoText: 'PA',
-    logoStyle: 'background: linear-gradient(135deg, #2a2420, #4a3830);',
-    role: 'AI Engineer · Abu Dhabi',
-    date: '2023 — Present',
+    logoText: 'SY',
+    logoStyle: 'background: linear-gradient(135deg, #1a2744, #0c6e6a); color: #e2e8f0;',
+    logoSrc: '/logos/syneren.png',
+    date: 'Feb 2023 — Present',
     bullets: [
-      'Built and deployed RAG pipelines for Arabic + English document intelligence at scale.',
-      'Fine-tuned LLMs on domain-specific corpora — 23% accuracy lift over baseline.',
-      'Designed streaming API layer serving 10k+ daily real-time queries.',
+      'Three years shipping production GenAI into a live federal workflow — LangGraph multi-agent pipelines, RAG with full evaluation, and LLM systems running for real users, not demo dashboards.',
+      'Two production LangGraph multi-agent systems — one automating NHTSA safety document processing, one cross-referencing federal motor vehicle safety standards — both Pinecone-backed and fully Langfuse-traced across every agent step.',
+      'Eval-first by default — RAGAS faithfulness and context recall on every retrieval, Langfuse traces on every agent step, SHAP explainability on every classifier; nothing ships untraced.',
     ],
   },
   {
-    key: 'g42',
-    place: 'G42 Healthcare',
-    shortRole: 'ML Engineer',
+    key: 'scale-ai',
+    place: 'Scale AI',
+    placeLong: 'Scale AI',
+    shortRole: 'Team Lead',
+    role: 'RLHF Specialist & Team Lead',
+    location: 'Remote, USA',
     type: 'work',
     side: 'right',
-    logoText: 'G4',
-    logoStyle: 'background: linear-gradient(135deg, #b07a1a, #8a5e10);',
-    role: 'ML Engineer · Abu Dhabi',
-    date: '2021 — 2023',
+    logoText: 'SA',
+    logoStyle: 'background: linear-gradient(135deg, #111, #2a2a2a);',
+    logoSrc: '/logos/scale-ai.png',
+    date: 'Jun 2023 — Jun 2024',
     bullets: [
-      'Developed NLP classifiers for clinical notes across 6 UAE hospital networks.',
-      'Led model evaluation framework — reduced false-positive rate by 18% in production.',
-      'Built NABIDH-compliant data pipelines for federated health data ingestion.',
+      "Hands inside OpenAI's alignment loop — every evaluation I shipped became preference data that PPO/DPO training optimized against.",
+      'Spent a year generating the human signal that shaped how a frontier LLM reasons about code.',
+      'Sat one layer away from the model: my judgments on code, reasoning, and instruction-following were the reward signal.',
     ],
   },
   {
-    key: 'oxford',
-    place: 'Oxford — Online',
-    shortRole: 'Postgrad ML',
+    key: 'george-mason',
+    place: 'GMU',
+    placeLong: 'George Mason University',
+    shortRole: 'MS Data Analytics',
+    role: 'M.S. Data Analytics',
+    location: 'Virginia, USA',
     type: 'edu',
     side: 'left',
-    logoText: 'OX',
-    logoStyle: 'background: linear-gradient(135deg, #1e2840, #141c30); color: #c8b896;',
-    role: 'Postgrad ML · Remote',
-    date: '2022 · Distinction',
+    logoText: 'GM',
+    logoStyle: 'background: linear-gradient(135deg, #006633, #f7c700); color: #fff;',
+    logoSrc: '/logos/george-mason.png',
+    date: 'Dec 2022',
     bullets: [
-      'Advanced coursework in Bayesian inference, probabilistic graphical models, deep learning.',
-      'Capstone: multi-modal retrieval system for scientific literature using dense embeddings.',
-      'Completed alongside full-time ML role at G42 Healthcare.',
+      'Graduate coursework in statistical learning, machine learning, and large-scale data engineering — the theoretical foundation under everything that came after.',
+      'Ran a MITRE Data Engineer internship in parallel — graduate theory and federal-data engineering on the same calendar.',
     ],
   },
   {
-    key: 'noon',
-    place: 'Noon.com',
-    shortRole: 'Data Scientist',
+    key: 'mitre',
+    place: 'MITRE',
+    placeLong: 'The MITRE Corporation',
+    shortRole: 'Data Engineer Intern',
+    role: 'Data Engineer Intern',
+    location: 'Virginia, USA',
     type: 'work',
+    side: 'right',
+    logoText: 'MI',
+    logoStyle: 'background: linear-gradient(135deg, #003366, #0073cf);',
+    logoSrc: '/logos/mitre.svg',
+    date: 'Aug — Dec 2022',
+    bullets: [
+      "Built the pipeline end-to-end — scraping, HTML cleaning, spaCy NER for entity tagging, LDA topic modeling with MLflow-tracked coherence sweeps, and DCAT-standard output into MITRE's research catalog.",
+      'Tracked every experiment in MLflow even as an intern — topic-count sweeps optimized against c_v coherence, the same eval-first discipline I now apply with RAGAS and Langfuse.',
+    ],
+  },
+  {
+    key: 'navigem',
+    place: 'Navigem Data',
+    placeLong: 'Navigem Data',
+    shortRole: 'ML Intern',
+    role: 'Machine Learning Intern',
+    location: 'Bengaluru, India',
+    type: 'work',
+    side: 'left',
+    logoText: 'ND',
+    logoStyle: 'background: linear-gradient(135deg, #0a4a6e, #06324a);',
+    logoSrc: '/logos/navigem.png',
+    date: 'May — Dec 2020',
+    bullets: [
+      'Trained dense embeddings the hard way in 2020 — ResNet pre-trained with softmax, then fine-tuned with triplet loss to learn an identity-matching embedding space; the same conceptual playbook I now apply with sentence-transformers in RAG.',
+      'Shipped AI to a phone, not a server — TFLite + INT8 quantization for on-device deployment with a 4× footprint reduction and sub-second inference; the kind of optimization work that becomes relevant again with on-device LLMs.',
+    ],
+  },
+  {
+    key: 'nmit',
+    place: 'NMIT',
+    placeLong: 'Nitte Meenakshi\nInstitute of Technology',
+    shortRole: 'BE Computer Science',
+    role: 'B.E. Computer Science',
+    location: 'Bengaluru, India',
+    type: 'edu',
     side: 'right',
     logoText: 'N',
-    logoStyle: 'background: linear-gradient(135deg, #1a2e3a, #0d1e28);',
-    role: 'Data Scientist · Dubai',
-    date: '2020 — 2021',
+    logoStyle: 'background: linear-gradient(135deg, #b71c1c, #7a0f0f); color: #fff;',
+    logoSrc: '/logos/nmit.png',
+    date: 'Aug 2020',
     bullets: [
-      'Built recommendation engine serving 5M+ users across the MENA e-commerce platform.',
-      'Reduced cart abandonment 11% via intent-prediction model deployed at the edge.',
-      'Created A/B testing framework with statistical-significance tooling for product teams.',
-    ],
-  },
-  // TODO: replace with real 4th work entry (placeholder per STATUS.md follow-up)
-  {
-    key: 'acme',
-    place: 'Acme Labs',
-    shortRole: 'ML Intern',
-    type: 'work',
-    side: 'left',
-    logoText: 'AL',
-    logoStyle: 'background: linear-gradient(135deg, #3a3a3a, #2a2a2a);',
-    role: 'ML Intern · (placeholder)',
-    date: '2019 — Placeholder',
-    bullets: [
-      'Placeholder — describe the project, problem domain, or key responsibility.',
-      'Placeholder — measurable outcome (latency, accuracy, scale, etc.).',
-      'Placeholder — technologies or processes used.',
-    ],
-  },
-  {
-    key: 'manipal',
-    place: 'Manipal University',
-    shortRole: 'B.Tech, Computer Science',
-    type: 'edu',
-    side: 'right',
-    logoText: 'MU',
-    logoStyle: 'background: linear-gradient(135deg, #d4c9a8, #c0b090); color: #2a2420;',
-    role: 'B.Tech, Computer Science · Dubai',
-    date: '2016 — 2020 · First Class',
-    bullets: [
-      'Specialized in Artificial Intelligence and Machine Learning in the final year.',
-      'Thesis: "Attention-based architectures for Arabic sentiment classification."',
-      'VP, CS Society — organised 3 inter-university hackathons in the UAE.',
+      'Foundations in algorithms, data structures, systems, and applied ML — the engineering scaffold under everything that came after.',
+      'Final-year ML internship at Navigem ran in parallel — undergrad coursework and quantized ML shipping to Android on the same calendar.',
     ],
   },
 ]

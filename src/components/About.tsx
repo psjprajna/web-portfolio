@@ -12,19 +12,20 @@ export function About() {
             that <em>reason.</em>
           </h1>
           <blockquote className="bio-quote">
-            “I build intelligent systems that understand language, reason across documents,
-            and make decisions at scale.”
+            “I build AI systems that ship — to federal infrastructure, frontier-model
+            training pipelines, and real users.”
           </blockquote>
           <p className="bio-para">
-            With a foundation in deep learning and a focus on Large Language Models, I bridge
-            the gap between academic research and production-grade AI. My work in Dubai’s
-            thriving tech ecosystem involves architecting scalable data pipelines and
-            deploying generative agents that solve complex enterprise challenges.
+            AI/ML Engineer with direct experience inside OpenAI&rsquo;s frontier LLM
+            training pipeline (SFT + RLHF/PPO/DPO at Scale AI) and 3+ years building
+            production AI systems on U.S. federal infrastructure for the U.S. Department of
+            Transportation / NHTSA.
           </p>
           <p className="bio-para">
-            I believe AI should not be a black box but a transparent, reasoning partner. My
-            approach combines rigorous statistical methods with the latest advances in neural
-            architectures to ensure precision and reliability in every deployment.
+            Specialise in RAG pipeline engineering (hybrid retrieval, RAGAS evaluation,
+            LangFuse observability), multi-agent architectures (LangGraph, ReAct), and
+            end-to-end MLOps from MLflow tracking to drift monitoring and FastAPI
+            deployment. Now Dubai-based, available immediately.
           </p>
         </div>
 
