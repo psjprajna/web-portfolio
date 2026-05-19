@@ -2,8 +2,8 @@ export type SkillDot = 'd-gold' | 'd-ink' | 'd-terra'
 
 export type SkillIconName =
   | 'genai'
+  | 'rag'
   | 'ml'
-  | 'languages'
   | 'frameworks'
   | 'cloud'
   | 'data'
@@ -24,11 +24,20 @@ export const SKILLS: readonly Skill[] = [
     eyebrow: 'GenAI',
     title: 'GenAI / LLMs',
     keywords:
-      'LLMs, RAG, SFT, RLHF, DPO, LangChain, LangGraph, Langfuse, RAGAS, FAISS, Pinecone, BGE Reranker, sentence-transformers, LoRA (PEFT), Claude API, AraBERT, spaCy, HITL',
+      'LLMs, SFT, RLHF, DPO, LangChain, LangGraph, LoRA (PEFT), Claude API, AraBERT, spaCy, HITL',
     iconName: 'genai',
   },
   {
     num: '02',
+    dot: 'd-terra',
+    eyebrow: 'Retrieval',
+    title: 'Retrieval & RAG',
+    keywords:
+      'RAG, Langfuse, RAGAS, FAISS, Pinecone, BGE Reranker, sentence-transformers',
+    iconName: 'rag',
+  },
+  {
+    num: '03',
     dot: 'd-ink',
     eyebrow: 'Core ML',
     title: 'ML / Deep Learning',
@@ -37,28 +46,21 @@ export const SKILLS: readonly Skill[] = [
     iconName: 'ml',
   },
   {
-    num: '03',
-    dot: 'd-terra',
-    eyebrow: 'Code',
-    title: 'Languages',
-    keywords: 'Python, JavaScript, TypeScript, SQL, Bash, HTML / CSS',
-    iconName: 'languages',
-  },
-  {
     num: '04',
     dot: 'd-ink',
-    eyebrow: 'Frameworks',
-    title: 'Frameworks',
-    keywords: 'Next.js, React, Flask, FastAPI, Pydantic, Pandas, Prisma',
+    eyebrow: 'Stack',
+    title: 'Languages & Frameworks',
+    keywords:
+      'Python, JavaScript, TypeScript, HTML / CSS, Next.js, React, Flask, FastAPI, Pydantic, Pandas, Prisma',
     iconName: 'frameworks',
   },
   {
     num: '05',
     dot: 'd-gold',
     eyebrow: 'Cloud',
-    title: 'Cloud / DevOps',
+    title: 'Cloud & Infra',
     keywords:
-      'AWS (CodePipeline, Elastic Beanstalk), Azure (OpenAI, AI Search, Container Apps), Docker, Linux cron, Airflow, MLflow',
+      'AWS (CodePipeline, Elastic Beanstalk), Azure (OpenAI, AI Search, Container Apps), Docker, Linux cron, Airflow, MLflow, Bash',
     iconName: 'cloud',
   },
   {
@@ -66,7 +68,7 @@ export const SKILLS: readonly Skill[] = [
     dot: 'd-terra',
     eyebrow: 'Data',
     title: 'Data / BI',
-    keywords: 'PostgreSQL, MySQL, Oracle, Power BI, Splunk',
+    keywords: 'PostgreSQL, MySQL, Oracle, SQL, Power BI, Splunk',
     iconName: 'data',
   },
 ]

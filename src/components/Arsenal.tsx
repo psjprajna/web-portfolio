@@ -61,11 +61,12 @@ const ICONS: Record<SkillIconName, React.ReactNode> = {
       <path d="M2 12l10 5 10-5" />
     </svg>
   ),
-  languages: (
+  rag: (
     <svg className="card-icon" viewBox="0 0 24 24">
-      <polyline points="16 18 22 12 16 6" />
-      <polyline points="8 6 2 12 8 18" />
-      <line x1="13.5" y1="4" x2="10.5" y2="20" />
+      <circle cx="10" cy="10" r="5" />
+      <line x1="13.5" y1="13.5" x2="19" y2="19" />
+      <line x1="7.5" y1="10" x2="12.5" y2="10" />
+      <line x1="10" y1="7.5" x2="10" y2="12.5" />
     </svg>
   ),
   frameworks: (

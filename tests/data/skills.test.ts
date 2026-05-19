@@ -3,8 +3,8 @@ import { SKILLS, type SkillIconName } from '@/lib/data/skills'
 
 const VALID_ICON_NAMES: ReadonlyArray<SkillIconName> = [
   'genai',
+  'rag',
   'ml',
-  'languages',
   'frameworks',
   'cloud',
   'data',
