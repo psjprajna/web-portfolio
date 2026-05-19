@@ -35,6 +35,7 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     side: 'left',
     logoText: 'SY',
     logoStyle: 'background: linear-gradient(135deg, #1a2744, #0c6e6a); color: #e2e8f0;',
+    logoSrc: '/logos/syneren.png',
     date: 'Feb 2023 — Present',
     bullets: [
       'LangGraph multi-agent pipeline for NHTSA vehicle-safety + ADS compliance docs — full Langfuse observability.',
