@@ -452,15 +452,17 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   gap: 0 24px;
   flex: 1;
   min-height: 0;
-  transition: grid-template-columns 0.8s cubic-bezier(.22,1,.36,1);
+  /* Issue 4 follow-up: slowed 0.8s → 1.2s so the timeline slide feels less snappy. */
+  transition: grid-template-columns 1.2s cubic-bezier(.22,1,.36,1);
 }
 /* In detail mode, col 1 must absorb the side-left card overflow (cards extend
-   ~89px LEFT of tl-list via .tl-entry padding-right calc(50% + 18px)). 100px
-   keeps the timeline as far left as safe while leaving an 11px buffer past
-   the bio gap so cards never touch bio. The symmetric side-right overflow
-   (89px) is handled by .detail-card margin-left, not by this column. */
+   ~89px LEFT of tl-list via .tl-entry padding-right calc(50% + 18px)).
+   Issue 4 follow-up: col 1 tightened 100px → 40px to shift the whole spine + card
+   60px further left, keeping the detail card from extending into #about's right
+   gutter on wide viewports. 40px = 89px overflow - 36px bio gap - 13px safety,
+   so side-left cards have a tiny but non-zero clearance from bio-left content. */
 .journey-area[data-mode="detail"] .journey-views {
-  grid-template-columns: 100px auto 1fr;
+  grid-template-columns: 40px auto 1fr;
 }
 
 .timeline-view {
@@ -576,20 +578,30 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   background: var(--warm-white);
   border-radius: 14px;
   box-shadow: 0 20px 50px var(--shadow-pop), 0 2px 6px var(--shadow-card);
-  padding: 22px 22px;
+  /* Issue 4 follow-up: padding 22→18 vertical (saves 8px) lets Syneren fit
+     at 1920×1080. Horizontal stays 22px to preserve text gutters. */
+  padding: 18px 22px;
   display: flex; flex-direction: column;
   position: relative;
-  max-width: 280px;
+  /* Issue 4 follow-up: fluid card width via clamp() so the card scales with
+     viewport instead of feeling tiny on wide screens / cramped on narrow.
+     Anchored at 1440px viewport: 22vw = 316.8px (matches the prior fixed 320px).
+     Ceiling tightened 400 → 380 to keep cardRight inside #about content-right
+     at 1920+ (paired with the 60px leftward shift via journey-views col 1). */
+  max-width: clamp(280px, 22vw, 380px);
   width: 100%;
-  /* 72px clears the side-right card overflow (89px) when added to the
-     24px column gap (24+72=96 > 89), keeping detail card in its own lane. */
-  margin-left: 72px;
+  /* Fluid right-shift — keeps the card visually balanced as the viewport grows.
+     6.4vw at 1440 = 92.16 (matches the prior fixed 92px). Floor 72px / ceil 120px.
+     Clearance math still holds at the floor: 72 + 24px column-gap = 96 > 89 right-overflow. */
+  margin-left: clamp(72px, 6.4vw, 120px);
   margin-top: var(--spine-top, 28px);
   margin-bottom: var(--spine-bottom, 62px);
   opacity: 0;
   pointer-events: none;
   transform: translateX(12px);
-  transition: opacity 0.5s ease 0.15s, transform 0.6s cubic-bezier(.22,1,.36,1) 0.15s, background 0.4s;
+  /* Issue 4 follow-up: scaled timings ~1.5x for a less-snappy hover reveal,
+     and delay 0.15s → 0.2s so the card-after-timeline stagger still reads at the slower pace. */
+  transition: opacity 0.75s ease 0.2s, transform 0.9s cubic-bezier(.22,1,.36,1) 0.2s, background 0.4s;
 }
 .journey-area[data-mode="detail"] .detail-card {
   opacity: 1; pointer-events: auto; transform: translateX(0);
@@ -598,7 +610,9 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .detail-headline { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 /* Issue 3.1: pre-line lets the same "George Mason\nUniversity" / "Nitte Meenakshi\nInstitute of Technology"
    data wrap consistently in both lineage cards and the desktop detail card. */
-.detail-place { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); white-space: pre-line; }
+/* Fluid heading — 1.4vw at 1440 = 20.16 (matches the prior fixed 20px).
+   Floor 18px / ceil 22px to keep proportional with body text scaling. */
+.detail-place { font-family: var(--serif); font-size: clamp(18px, 1.4vw, 22px); font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); white-space: pre-line; }
 .detail-role  { font-family: var(--sans);  font-size: 11.5px; font-weight: 500; color: var(--ink2); }
 .detail-location {
   font-family: var(--sans);
@@ -622,12 +636,18 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 }
 /* Issue 3.1: Robust 1px separator. The previous height:1px + background approach
    collapsed to 0 in flex-column parents (flex-shrink: 1 + min-height: auto eats
-   the 1px). Using border-top renders independent of computed height. */
-.detail-rule { height: 0; border-top: 1px solid var(--border-soft); margin: 14px 0; flex-shrink: 0; }
+   the 1px). Using border-top renders independent of computed height.
+   Issue 4 follow-up: 14px→10px to reclaim ~8px of vertical room at 1440×900. */
+.detail-rule { height: 0; border-top: 1px solid var(--border-soft); margin: 10px 0; flex-shrink: 0; }
 .detail-bullets { list-style: none; padding: 0; }
+/* Issue 4 follow-up: tightened line-height 1.7→1.55 and margin-bottom 10→7
+   to reduce overflow at 1440×900 without dropping font-size below 11.5px.
+   1.55 stays above the industry-standard 1.5 readability floor for body copy.
+   Fluid font: 0.8vw at 1440 = 11.52 (matches prior 11.5). Floor 11.5px / ceil 13px.
+   line-height stays as a ratio so it scales with the fluid font automatically. */
 .detail-bullets li {
-  font-size: 11.5px; line-height: 1.7; color: var(--ink2);
-  padding-left: 14px; position: relative; margin-bottom: 10px;
+  font-size: clamp(11.5px, 0.8vw, 13px); line-height: 1.55; color: var(--ink2);
+  padding-left: 14px; position: relative; margin-bottom: 7px;
 }
 .detail-bullets li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
 .detail-bullets li:last-child { margin-bottom: 0; }
