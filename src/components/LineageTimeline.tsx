@@ -177,8 +177,9 @@ export function LineageTimeline() {
         >
           <div className="detail-header">
             <div className="detail-headline">
-              <div className="detail-place">{activeEntry.place}</div>
+              <div className="detail-place">{activeEntry.placeLong}</div>
               <div className="detail-role">{activeEntry.role}</div>
+              <div className="detail-location">{activeEntry.location}</div>
             </div>
             <span className="detail-date">{activeEntry.date}</span>
           </div>
@@ -228,8 +229,13 @@ function TimelineEntry({ entry, active, onEnter, onLeave, onClick }: TimelineEnt
             )}
           </div>
           <div className="tl-text">
-            <span className="tl-place">{entry.place}</span>
-            <span className="tl-role">{entry.shortRole}</span>
+            {/* Dual-render: desktop shows --short, iPad/mobile shows --long.
+                Toggled via display rules in globals.css (.tl-place--long / .tl-role--long
+                are display:none by default and display:block inside the 1199px / 879px media block). */}
+            <span className="tl-place tl-place--short">{entry.place}</span>
+            <span className="tl-place tl-place--long">{entry.placeLong}</span>
+            <span className="tl-role tl-role--short">{entry.shortRole}</span>
+            <span className="tl-role tl-role--long">{entry.role}</span>
           </div>
         </div>
         <div className="tl-details">

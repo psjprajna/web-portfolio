@@ -534,6 +534,12 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .tl-entry.side-right .tl-text { align-items: flex-start; text-align: left; }
 .tl-place { font-family: var(--serif); font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1.3; white-space: nowrap; }
 .tl-role  { font-family: var(--sans);  font-size: 10.5px; font-weight: 500; color: var(--ink2); line-height: 1.4; white-space: nowrap; }
+/* Issue 3.1: dual-render short / long forms. Defaults below apply on desktop;
+   the iPad/mobile/short-desktop media block at ~line 1111 swaps visibility. */
+.tl-place--long,
+.tl-role--long { display: none; }
+.tl-place--long { white-space: pre-line; }  /* honor \n in "George Mason\nUniversity" */
+.tl-role--long  { white-space: normal; }    /* allow natural wrap on narrow mobile widths */
 
 .tl-details {
   display: none;
@@ -590,8 +596,19 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 }
 .detail-header { display: flex; flex-direction: column; gap: 8px; }
 .detail-headline { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.detail-place { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); }
+/* Issue 3.1: pre-line lets the same "George Mason\nUniversity" / "Nitte Meenakshi\nInstitute of Technology"
+   data wrap consistently in both lineage cards and the desktop detail card. */
+.detail-place { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; color: var(--ink); white-space: pre-line; }
 .detail-role  { font-family: var(--sans);  font-size: 11.5px; font-weight: 500; color: var(--ink2); }
+.detail-location {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink2);
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+  opacity: 0.78;
+}
 .detail-date {
   align-self: flex-start;
   font-family: var(--sans);
@@ -603,7 +620,10 @@ html.dark-mode #hero-cycle { color: var(--gold); }
   border-radius: 100px;
   white-space: nowrap;
 }
-.detail-rule { height: 1px; background: var(--border-soft); margin: 14px 0 14px; }
+/* Issue 3.1: Robust 1px separator. The previous height:1px + background approach
+   collapsed to 0 in flex-column parents (flex-shrink: 1 + min-height: auto eats
+   the 1px). Using border-top renders independent of computed height. */
+.detail-rule { height: 0; border-top: 1px solid var(--border-soft); margin: 14px 0; flex-shrink: 0; }
 .detail-bullets { list-style: none; padding: 0; }
 .detail-bullets li {
   font-size: 11.5px; line-height: 1.7; color: var(--ink2);
@@ -1169,6 +1189,13 @@ body.chat-open { overflow: hidden; }
   .tl-dot { left: 16px; }
 
   .tl-entry.is-active .tl-details { display: block; }
+
+  /* Issue 3.1: iPad/mobile/short-desktop swap — hide short form, reveal full legal name + full role.
+     .tl-place--long uses pre-line for the embedded \n (edu names ≥ 3 words break at the 2-word mark). */
+  .tl-place--short,
+  .tl-role--short { display: none; }
+  .tl-place--long,
+  .tl-role--long  { display: block; }
 
   #projects { padding: 88px 32px 72px; overflow: visible; min-height: auto; }
   .projects-grid { grid-auto-rows: auto; }
