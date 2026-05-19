@@ -20,7 +20,8 @@ export interface JourneyEntry {
   logoStyle: string
   logoSrc?: string
   date: string
-  bullets: readonly [string, string, string]
+  // 1-3 bullets. Education entries often need only 1; internships 2; full roles 3.
+  bullets: readonly [string, string?, string?]
 }
 
 export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
@@ -38,9 +39,9 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/syneren.png',
     date: 'Feb 2023 — Present',
     bullets: [
-      'LangGraph multi-agent pipeline for NHTSA vehicle-safety + ADS compliance docs — full Langfuse observability.',
-      'RAG over 15K+ NHTSA recall records (sentence-transformers + Pinecone) — RAGAS-validated for faithfulness and context recall.',
-      'Led Oracle → PostgreSQL migration of NHTSA crash records — zero data loss across millions of rows.',
+      'Three years shipping production GenAI into a live federal workflow — LangGraph multi-agent pipelines, RAG with full evaluation, and LLM systems running for real users, not demo dashboards.',
+      'Two production LangGraph multi-agent systems — one automating NHTSA safety document processing, one cross-referencing federal motor vehicle safety standards — both Pinecone-backed and fully Langfuse-traced across every agent step.',
+      'Eval-first by default — RAGAS faithfulness and context recall on every retrieval, Langfuse traces on every agent step, SHAP explainability on every classifier; nothing ships untraced.',
     ],
   },
   {
@@ -57,9 +58,9 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/scale-ai.png',
     date: 'Jun 2023 — Jun 2024',
     bullets: [
-      "SFT + RLHF pipelines for OpenAI's frontier LLMs — human-preference data informing PPO and DPO alignment training.",
-      'Promoted to Team Lead in 6 months; QA across 50+ annotators on OpenAI training data; weekly audits.',
-      'Annotation policy SME for code and reasoning — refined labeling guidelines and onboarded new annotators.',
+      "Hands inside OpenAI's alignment loop — every evaluation I shipped became preference data that PPO/DPO training optimized against.",
+      'Spent a year generating the human signal that shaped how a frontier LLM reasons about code.',
+      'Sat one layer away from the model: my judgments on code, reasoning, and instruction-following were the reward signal.',
     ],
   },
   {
@@ -76,9 +77,8 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/george-mason.png',
     date: 'Dec 2022',
     bullets: [
-      'Graduate coursework in statistical learning, applied ML, and large-scale data engineering.',
-      'Completed concurrently with the MITRE Corporation Data Engineer internship (Aug – Dec 2022).',
-      'Specialised track in production-grade data systems and ML pipelines.',
+      'Graduate coursework in statistical learning, machine learning, and large-scale data engineering — the theoretical foundation under everything that came after.',
+      'Ran a MITRE Data Engineer internship in parallel — graduate theory and federal-data engineering on the same calendar.',
     ],
   },
   {
@@ -95,9 +95,8 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/mitre.svg',
     date: 'Aug — Dec 2022',
     bullets: [
-      'Unsupervised NLP pipeline auto-tagging 10K+ news articles (BBC, CNN, CNBC, Al Jazeera, Japan Times) — LDA + MLflow.',
-      '4-stage data pipeline (scraping → cleaning → HTML extraction → NER) — spaCy across 5 datasets.',
-      'Production DCAT-standard metadata catalog — tagging time hours → seconds per batch.',
+      "Built the pipeline end-to-end — scraping, HTML cleaning, spaCy NER for entity tagging, LDA topic modeling with MLflow-tracked coherence sweeps, and DCAT-standard output into MITRE's research catalog.",
+      'Tracked every experiment in MLflow even as an intern — topic-count sweeps optimized against c_v coherence, the same eval-first discipline I now apply with RAGAS and Langfuse.',
     ],
   },
   {
@@ -114,9 +113,8 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/navigem.png',
     date: 'May — Dec 2020',
     bullets: [
-      'ResNet face-recognition on a custom 5K+ image dataset (Keras) — softmax then triplet loss; MTCNN + augmentation.',
-      'TFLite + INT8 quantization for Android — ~4× size reduction, sub-second offline inference.',
-      'End-to-end pipeline: collection → MTCNN → augmentation → ResNet → TFLite → Android SDK.',
+      'Trained dense embeddings the hard way in 2020 — ResNet pre-trained with softmax, then fine-tuned with triplet loss to learn an identity-matching embedding space; the same conceptual playbook I now apply with sentence-transformers in RAG.',
+      'Shipped AI to a phone, not a server — TFLite + INT8 quantization for on-device deployment with a 4× footprint reduction and sub-second inference; the kind of optimization work that becomes relevant again with on-device LLMs.',
     ],
   },
   {
@@ -133,9 +131,8 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/nmit.png',
     date: 'Aug 2020',
     bullets: [
-      'Four-year undergraduate degree in Computer Science Engineering.',
-      'Coursework in algorithms, data structures, applied ML, and software engineering.',
-      'Final-year ML internship at Navigem Data ran concurrently (May – Dec 2020).',
+      'Foundations in algorithms, data structures, systems, and applied ML — the engineering scaffold under everything that came after.',
+      'Final-year ML internship at Navigem ran in parallel — undergrad coursework and quantized ML shipping to Android on the same calendar.',
     ],
   },
 ]
