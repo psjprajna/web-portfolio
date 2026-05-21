@@ -2,10 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { matchChunks, type MatchedChunk } from '@/lib/db/match'
 import { synthesize } from '@/lib/ai/synthesize'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import * as answerCache from '@/lib/cache/answer-cache'
 
 vi.mock('@/lib/db/match', () => ({ matchChunks: vi.fn() }))
 vi.mock('@/lib/ai/synthesize', () => ({ synthesize: vi.fn() }))
 vi.mock('@/lib/supabase/service', () => ({ createSupabaseServiceClient: vi.fn() }))
+vi.mock('@/lib/cache/answer-cache', () => ({
+  buildKey: vi.fn((q: string, lastUserTurn?: string) => `k:${q}|${lastUserTurn ?? ''}`),
+  get: vi.fn(() => null),
+  set: vi.fn(),
+}))
 
 import { POST } from '@/app/api/ai/rag/route'
 
@@ -64,6 +70,9 @@ async function* yieldTokens(tokens: string[]): AsyncGenerator<string, void, unkn
 describe('POST /api/ai/rag', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default cache.get() to null so existing tests treat every call as a miss.
+    // Individual tests override this for hit-path scenarios.
+    vi.mocked(answerCache.get).mockReturnValue(null)
   })
 
   it('returns 400 when request body is not valid JSON', async () => {
@@ -105,7 +114,7 @@ describe('POST /api/ai/rag', () => {
       ],
     })
     expect(done).toBe(true)
-    expect(synthesize).toHaveBeenCalledWith('arabic NLP', chunks, [])
+    expect(synthesize).toHaveBeenCalledWith('arabic NLP', chunks, [], expect.any(Object))
     expect(from).toHaveBeenCalledWith('rag_queries')
     expect(insert).toHaveBeenCalledTimes(1)
     expect(insert).toHaveBeenCalledWith(
@@ -188,7 +197,7 @@ describe('POST /api/ai/rag', () => {
     expect(res.status).toBe(200)
     await parseSseBody(res)
     expect(synthesize).toHaveBeenCalledTimes(1)
-    expect(synthesize).toHaveBeenCalledWith('What about my education there?', chunks, history)
+    expect(synthesize).toHaveBeenCalledWith('What about my education there?', chunks, history, expect.any(Object))
   })
 
   it('clamps history to last 6 turns before passing to synthesize', async () => {
@@ -225,5 +234,94 @@ describe('POST /api/ai/rag', () => {
     )
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ error: 'invalid request' })
+  })
+
+  it('logs cache_hit:none on cache miss; populates answer cache after successful synthesize', async () => {
+    const chunks: MatchedChunk[] = [
+      { source: 'project', chunkId: 'p1', title: 'Arabic Sentiment Analysis', content: 'AraBERT for Gulf dialects.', score: 0.527 },
+    ]
+    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['answer text.']))
+    vi.mocked(answerCache.get).mockReturnValue(null) // explicit miss
+    const { insert } = mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'arabic NLP' }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+
+    // Real path ran end-to-end
+    expect(matchChunks).toHaveBeenCalledTimes(1)
+    expect(synthesize).toHaveBeenCalledTimes(1)
+
+    // Cache lookup attempted with the built key
+    expect(answerCache.buildKey).toHaveBeenCalledWith('arabic NLP', undefined)
+    expect(answerCache.get).toHaveBeenCalledTimes(1)
+
+    // Cache populated on success
+    expect(answerCache.set).toHaveBeenCalledTimes(1)
+    const setCall = vi.mocked(answerCache.set).mock.calls[0]
+    expect(setCall?.[1]).toBe('answer text.')
+    expect(setCall?.[2]).toEqual([
+      expect.objectContaining({ source: 'project', title: 'Arabic Sentiment Analysis', score: 0.527, chunkId: 'p1' }),
+    ])
+
+    // Telemetry logs cache_hit:'none' (no prompt-cache info from mocked synthesize)
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: 'arabic NLP',
+        cache_hit: 'none',
+        refused: false,
+      })
+    )
+  })
+
+  it('returns cached answer (skips matchChunks + synthesize) and logs cache_hit:answer on cache hit', async () => {
+    const cachedSources = [
+      { source: 'project', title: 'Arabic Sentiment Analysis', score: 0.527, chunkId: 'p1' },
+      { source: 'bio', title: 'GenAI / LLMs', score: 0.433, chunkId: 'b1' },
+    ]
+    vi.mocked(answerCache.get).mockReturnValue({
+      answer: 'cached answer body.',
+      sources: cachedSources,
+      expiresAt: Date.now() + 60_000,
+    })
+    const { insert } = mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'arabic NLP' }))
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toBe('text/event-stream')
+
+    const { tokens, meta, done } = await parseSseBody(res)
+    expect(tokens).toEqual(['cached answer body.'])
+    expect(meta).toMatchObject({
+      type: 'meta',
+      refused: false,
+      sources: [
+        { source: 'project', title: 'Arabic Sentiment Analysis', score: 0.527 },
+        { source: 'bio', title: 'GenAI / LLMs', score: 0.433 },
+      ],
+    })
+    expect(done).toBe(true)
+
+    // Retrieval + synthesis short-circuited
+    expect(matchChunks).not.toHaveBeenCalled()
+    expect(synthesize).not.toHaveBeenCalled()
+
+    // Cache not re-populated on a hit
+    expect(answerCache.set).not.toHaveBeenCalled()
+
+    // Telemetry logs cache_hit:'answer'
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: 'arabic NLP',
+        cache_hit: 'answer',
+        refused: false,
+        response: 'cached answer body.',
+        retrieved_ids: ['p1', 'b1'],
+        relevance_top_score: 0.527,
+      })
+    )
   })
 })

@@ -211,6 +211,7 @@ export type Database = {
       }
       rag_queries: {
         Row: {
+          cache_hit: string | null
           created_at: string
           id: string
           latency_ms: number | null
@@ -224,6 +225,7 @@ export type Database = {
           session_id: string | null
         }
         Insert: {
+          cache_hit?: string | null
           created_at?: string
           id?: string
           latency_ms?: number | null
@@ -237,6 +239,7 @@ export type Database = {
           session_id?: string | null
         }
         Update: {
+          cache_hit?: string | null
           created_at?: string
           id?: string
           latency_ms?: number | null

@@ -4,9 +4,9 @@
  * F1. Voyage embed API 4xx/5xx/timeout → matchChunks throws → JSON 500.
  * F2. Empty retrieval (chunks.length === 0) → REFUSAL_EMPTY copy + telemetry refused=true.
  * F3. Weak retrieval (top score < REFUSAL_THRESHOLD) → REFUSAL_LOW copy + telemetry refused=true.
- * F4. Anthropic API timeout (>30s) — deferred to slice 4.2e (cache slice has the Promise.race wrapper).
- *     Cloudflare runtime kills runaway workers at 30s CPU anyway, so the visitor gets a
- *     dead stream not a hang.
+ * F4. Anthropic API timeout (>30s) — synthesize.ts wraps the stream with a setTimeout that
+ *     calls stream.abort() at the wall-clock limit. The for-await loop throws and is caught
+ *     by the stream's outer try, emitting an SSE `error` event.
  * F5. Anthropic rate limit (429) → SDK throws inside the async generator → caught by the
  *     stream's outer try, emits SSE `error` event, telemetry row still written from `finally`.
  * F6. Cloudflare Worker CPU limit → worker killed; telemetry row never written; client sees
@@ -21,8 +21,11 @@
  */
 import { z } from 'zod'
 import { matchChunks, type MatchedChunk } from '@/lib/db/match'
-import { synthesize, type Turn } from '@/lib/ai/synthesize'
+import { synthesize, type SynthesizeSignals, type Turn } from '@/lib/ai/synthesize'
+import * as answerCache from '@/lib/cache/answer-cache'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
+
+type CacheHit = 'none' | 'prompt' | 'answer' | 'both'
 
 const REFUSAL_THRESHOLD = 0.3
 const REFUSAL_EMPTY =
@@ -52,6 +55,7 @@ interface TelemetryPayload {
   model: string
   refused: boolean
   relevance_top_score: number | null
+  cache_hit: CacheHit
 }
 
 async function logRagQuery(
@@ -88,6 +92,55 @@ export async function POST(request: Request): Promise<Response> {
   const client = createSupabaseServiceClient()
   const t0 = Date.now()
 
+  const encoder = new TextEncoder()
+  const sse = (payload: unknown) =>
+    encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+
+  const SSE_HEADERS = {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+  }
+
+  // Cache lookup — runs BEFORE retrieval. History-aware key prevents the
+  // "What about her education there?" cross-session collision: identical
+  // wording with different antecedents hash to different buckets.
+  const lastUserTurn = [...clampedHistory].reverse().find((t) => t.role === 'user')?.text
+  const cacheKey = answerCache.buildKey(query, lastUserTurn)
+  const cached = answerCache.get(cacheKey)
+
+  if (cached) {
+    const hitStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(sse({ type: 'token', text: cached.answer }))
+        controller.enqueue(
+          sse({
+            type: 'meta',
+            sources: cached.sources.map((s) => ({
+              source: s.source,
+              title: s.title,
+              score: s.score,
+            })),
+            refused: false,
+          })
+        )
+        controller.enqueue(sse({ type: 'done' }))
+        controller.close()
+        void logRagQuery(client, {
+          query,
+          retrieved_ids: cached.sources.map((s) => s.chunkId),
+          response: cached.answer,
+          latency_ms: Date.now() - t0,
+          model: MODEL_NAME,
+          refused: false,
+          relevance_top_score: cached.sources[0]?.score ?? null,
+          cache_hit: 'answer',
+        })
+      },
+    })
+    return new Response(hitStream, { status: 200, headers: SSE_HEADERS })
+  }
+
   let chunks: MatchedChunk[]
   try {
     chunks = await matchChunks(query, TOP_K)
@@ -111,9 +164,7 @@ export async function POST(request: Request): Promise<Response> {
     score: c.score,
   }))
 
-  const encoder = new TextEncoder()
-  const sse = (payload: unknown) =>
-    encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+  const signals: SynthesizeSignals = {}
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -123,7 +174,7 @@ export async function POST(request: Request): Promise<Response> {
           controller.enqueue(sse({ type: 'token', text: refusalCopy }))
           buffer.push(refusalCopy)
         } else {
-          for await (const token of synthesize(query, chunks, clampedHistory)) {
+          for await (const token of synthesize(query, chunks, clampedHistory, signals)) {
             controller.enqueue(sse({ type: 'token', text: token }))
             buffer.push(token)
           }
@@ -135,25 +186,35 @@ export async function POST(request: Request): Promise<Response> {
         controller.enqueue(sse({ type: 'error' }))
       } finally {
         controller.close()
+        const answer = buffer.join('')
+        // Populate cache only on successful synthesize (skip refusals — the
+        // refusal copy is route-level constant text, nothing to cache).
+        if (!shouldRefuse && answer.length > 0) {
+          answerCache.set(
+            cacheKey,
+            answer,
+            chunks.map((c) => ({
+              source: c.source,
+              title: c.title,
+              score: c.score,
+              chunkId: c.chunkId,
+            }))
+          )
+        }
+        const cacheHit: CacheHit = shouldRefuse ? 'none' : (signals.cacheHit ?? 'none')
         void logRagQuery(client, {
           query,
           retrieved_ids: chunks.map((c) => c.chunkId),
-          response: buffer.join(''),
+          response: answer,
           latency_ms: Date.now() - t0,
           model: MODEL_NAME,
           refused: shouldRefuse,
           relevance_top_score: topScore,
+          cache_hit: cacheHit,
         })
       }
     },
   })
 
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-    },
-  })
+  return new Response(stream, { status: 200, headers: SSE_HEADERS })
 }
