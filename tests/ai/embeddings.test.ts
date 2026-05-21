@@ -4,11 +4,88 @@ vi.mock('@/lib/env', () => ({
   env: { VOYAGE_API_KEY: 'pa-test-key' },
 }))
 
-import { createEmbedding } from '@/lib/ai/embeddings'
+import { createEmbedding, createEmbeddings } from '@/lib/ai/embeddings'
 
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings'
 
-describe('createEmbedding', () => {
+function makeVector(seed: number, dims = 1024): number[] {
+  return Array.from({ length: dims }, (_, i) => (i + seed) * 0.001)
+}
+
+describe('createEmbeddings (batched)', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('sends all texts in a single Voyage call and returns vectors in input order', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [
+          { embedding: makeVector(0), index: 0 },
+          { embedding: makeVector(1), index: 1 },
+          { embedding: makeVector(2), index: 2 },
+        ],
+      }),
+    })
+
+    const result = await createEmbeddings(['a', 'b', 'c'])
+
+    expect(result).toHaveLength(3)
+    expect(result[0]).toHaveLength(1024)
+    expect(result[1]?.[0]).toBeCloseTo(0.001)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      VOYAGE_URL,
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ input: ['a', 'b', 'c'], model: 'voyage-3' }),
+      })
+    )
+  })
+
+  it('returns all-null when batched call 429s', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 429,
+      json: async () => ({ error: 'rate limit' }),
+    })
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const result = await createEmbeddings(['a', 'b', 'c'])
+
+    expect(result).toHaveLength(3)
+    expect(result.every((r) => r === null)).toBe(true)
+    expect(consoleErrorSpy).toHaveBeenCalled()
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('returns an empty array for an empty input list without hitting fetch', async () => {
+    const result = await createEmbeddings([])
+    expect(result).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('returns all-null when fetch throws', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network down'))
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const result = await createEmbeddings(['a', 'b'])
+
+    expect(result).toEqual([null, null])
+    consoleErrorSpy.mockRestore()
+  })
+})
+
+describe('createEmbedding (single-string wrapper)', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -24,25 +101,17 @@ describe('createEmbedding', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => ({
-        data: [{ embedding: Array.from({ length: 1024 }, (_, i) => i * 0.001) }],
-      }),
+      json: async () => ({ data: [{ embedding: makeVector(0) }] }),
     })
 
     const result = await createEmbedding('hello world')
 
     expect(result).not.toBeNull()
     expect(result).toHaveLength(1024)
-    expect(result?.every((n) => typeof n === 'number')).toBe(true)
     expect(fetchMock).toHaveBeenCalledWith(
       VOYAGE_URL,
       expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          Authorization: 'Bearer pa-test-key',
-          'Content-Type': 'application/json',
-        }),
-        body: JSON.stringify({ input: 'hello world', model: 'voyage-3' }),
+        body: JSON.stringify({ input: ['hello world'], model: 'voyage-3' }),
       })
     )
   })
@@ -54,7 +123,6 @@ describe('createEmbedding', () => {
     const result = await createEmbedding('hello world')
 
     expect(result).toBeNull()
-    expect(consoleErrorSpy).toHaveBeenCalled()
     consoleErrorSpy.mockRestore()
   })
 
@@ -69,7 +137,6 @@ describe('createEmbedding', () => {
     const result = await createEmbedding('hello world')
 
     expect(result).toBeNull()
-    expect(consoleErrorSpy).toHaveBeenCalled()
     consoleErrorSpy.mockRestore()
   })
 

@@ -5,14 +5,21 @@ const VOYAGE_MODEL = 'voyage-3'
 const EXPECTED_DIMS = 1024
 
 interface VoyageEmbeddingResponse {
-  data?: Array<{ embedding?: number[] }>
+  data?: Array<{ embedding?: number[]; index?: number }>
 }
 
-export async function createEmbedding(text: string): Promise<number[] | null> {
+// Voyage returns embeddings in input order. Batching collapses N HTTP calls
+// into 1 — critical for the free tier (3 RPM), where parallel Promise.all
+// against per-chunk calls 429s most requests.
+export async function createEmbeddings(
+  texts: string[]
+): Promise<Array<number[] | null>> {
   if (!env.VOYAGE_API_KEY) {
-    console.error('createEmbedding: VOYAGE_API_KEY is not configured')
-    return null
+    console.error('createEmbeddings: VOYAGE_API_KEY is not configured')
+    return texts.map(() => null)
   }
+
+  if (texts.length === 0) return []
 
   try {
     const response = await fetch(VOYAGE_URL, {
@@ -21,20 +28,28 @@ export async function createEmbedding(text: string): Promise<number[] | null> {
         Authorization: `Bearer ${env.VOYAGE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ input: text, model: VOYAGE_MODEL }),
+      body: JSON.stringify({ input: texts, model: VOYAGE_MODEL }),
     })
 
     if (!response.ok) {
-      console.error(`createEmbedding: HTTP ${response.status}`)
-      return null
+      console.error(`createEmbeddings: HTTP ${response.status}`)
+      return texts.map(() => null)
     }
 
     const body = (await response.json()) as VoyageEmbeddingResponse
-    const embedding = body.data?.[0]?.embedding
-    if (!embedding || embedding.length !== EXPECTED_DIMS) return null
-    return embedding
+    const items = body.data ?? []
+    return texts.map((_, i) => {
+      const emb = items[i]?.embedding
+      if (!emb || emb.length !== EXPECTED_DIMS) return null
+      return emb
+    })
   } catch (err) {
-    console.error('createEmbedding error:', err)
-    return null
+    console.error('createEmbeddings error:', err)
+    return texts.map(() => null)
   }
+}
+
+export async function createEmbedding(text: string): Promise<number[] | null> {
+  const [result] = await createEmbeddings([text])
+  return result ?? null
 }
