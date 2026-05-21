@@ -1,14 +1,20 @@
 import { replaceBioChunks } from '@/lib/db/bio'
+import { replaceResumeChunks } from '@/lib/db/resume'
 import {
   fetchProjectEmbeddingSource,
   upsertProjectEmbedding,
 } from '@/lib/db/projects'
 import { createEmbedding } from '@/lib/ai/embeddings'
 
-const USAGE = 'Usage: npm run embed -- <bio|project> [uuid]'
+const USAGE = 'Usage: npm run embed -- <bio|resume|project> [uuid]'
 
 async function embedBio(): Promise<void> {
   const result = await replaceBioChunks()
+  process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`)
+}
+
+async function embedResume(): Promise<void> {
+  const result = await replaceResumeChunks()
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`)
 }
 
@@ -34,6 +40,8 @@ async function main(): Promise<void> {
   const arg = process.argv[3]
 
   if (kind === 'bio') return embedBio()
+
+  if (kind === 'resume') return embedResume()
 
   if (kind === 'project') {
     if (!arg) {
