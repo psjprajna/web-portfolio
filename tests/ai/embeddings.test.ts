@@ -1,12 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-const { mockEmbed } = vi.hoisted(() => ({ mockEmbed: vi.fn() }))
-
-vi.mock('voyageai', () => ({
-  VoyageAIClient: class {
-    embed = mockEmbed
-  },
-}))
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('@/lib/env', () => ({
   env: { VOYAGE_API_KEY: 'pa-test-key' },
@@ -14,14 +6,27 @@ vi.mock('@/lib/env', () => ({
 
 import { createEmbedding } from '@/lib/ai/embeddings'
 
+const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings'
+
 describe('createEmbedding', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
-    mockEmbed.mockReset()
+    fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('returns a 1024-element number[] on Voyage success', async () => {
-    mockEmbed.mockResolvedValueOnce({
-      data: [{ embedding: Array.from({ length: 1024 }, (_, i) => i * 0.001) }],
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [{ embedding: Array.from({ length: 1024 }, (_, i) => i * 0.001) }],
+      }),
     })
 
     const result = await createEmbedding('hello world')
@@ -29,14 +34,36 @@ describe('createEmbedding', () => {
     expect(result).not.toBeNull()
     expect(result).toHaveLength(1024)
     expect(result?.every((n) => typeof n === 'number')).toBe(true)
-    expect(mockEmbed).toHaveBeenCalledWith({
-      input: 'hello world',
-      model: 'voyage-3',
-    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      VOYAGE_URL,
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer pa-test-key',
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({ input: 'hello world', model: 'voyage-3' }),
+      })
+    )
   })
 
-  it('returns null when the Voyage SDK throws', async () => {
-    mockEmbed.mockRejectedValueOnce(new Error('voyage rate limit'))
+  it('returns null when fetch throws', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network down'))
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const result = await createEmbedding('hello world')
+
+    expect(result).toBeNull()
+    expect(consoleErrorSpy).toHaveBeenCalled()
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('returns null on non-OK HTTP response', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 429,
+      json: async () => ({ error: 'rate limit' }),
+    })
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const result = await createEmbedding('hello world')
@@ -47,7 +74,11 @@ describe('createEmbedding', () => {
   })
 
   it('returns null when the response has no embedding data', async () => {
-    mockEmbed.mockResolvedValueOnce({ data: [] })
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: [] }),
+    })
 
     const result = await createEmbedding('hello world')
 
