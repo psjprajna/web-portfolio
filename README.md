@@ -45,9 +45,13 @@ from the edge (Cloudflare Workers).
 - ✅ **Slice 4.1c** — `resume_chunks` embedding (6 chunks: 4 experience + 2 education)
 - ✅ **Slice 4.1-verify** — semantic retrieval probe; 9/10 hand-curated queries
   return expected chunk in top-3
-- ⏳ **Task #18** — seed `projects` table from curated data
-- ⏳ **Slice 4.2** — RAG Q&A panel (`/api/ai/rag` + streaming chat + Claude
-  Sonnet synthesis)
+- ✅ **Task #18** — seed `projects` table from curated data (4 rows embedded
+  via batched Voyage call)
+- ✅ **Slice 4.2** — RAG Q&A panel: `match_chunks` Postgres RPC (UNION over
+  bio ∪ resume ∪ projects, ranked by HNSW cosine distance) → `/api/ai/rag`
+  SSE-streaming route (Claude Sonnet synthesis with refusal short-circuit at
+  score < 0.25) → `<ChatDrawer>` chat-style transcript with token-by-token
+  streaming and source attribution chips. **First UI-visible AI feature.**
 - ⏳ **Slice 4.3** — Natural-language project filter
 - ⏳ **Slice 4.4** — Persona-adaptive hero (referrer + Claude Haiku)
 - ⏳ **Slice 4.5** — Inline code explainer
@@ -73,6 +77,7 @@ npm run test         # vitest run
 
 npm run embed bio              # re-embed bio_chunks via Voyage
 npm run embed resume           # re-embed resume_chunks via Voyage
+npm run embed seed-projects    # seed + embed all 4 curated projects
 npm run embed project <uuid>   # re-embed a single project's readme
 npm run probe "your query"     # semantic similarity probe (verification)
 ```
