@@ -1,7 +1,7 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import { createEmbedding } from '@/lib/ai/embeddings'
 
-export type ChunkSource = 'bio' | 'resume' | 'project'
+export type ChunkSource = 'bio' | 'resume' | 'project' | 'project_readme'
 
 export interface MatchedChunk {
   source: ChunkSource

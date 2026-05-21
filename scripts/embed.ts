@@ -5,9 +5,11 @@ import {
   upsertProjectEmbedding,
 } from '@/lib/db/projects'
 import { seedProjects } from '@/lib/db/project-seeds'
+import { replaceProjectReadmeChunks } from '@/lib/db/project-readme-chunks'
+import { fetchAllProjectReadmeChunks } from './fetch-readmes'
 import { createEmbedding } from '@/lib/ai/embeddings'
 
-const USAGE = 'Usage: npm run embed -- <bio|resume|project|seed-projects> [uuid]'
+const USAGE = 'Usage: npm run embed -- <bio|resume|project|seed-projects|readmes> [uuid]'
 
 async function embedBio(): Promise<void> {
   const result = await replaceBioChunks()
@@ -21,6 +23,12 @@ async function embedResume(): Promise<void> {
 
 async function embedSeedProjects(): Promise<void> {
   const result = await seedProjects()
+  process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`)
+}
+
+async function embedReadmes(): Promise<void> {
+  const chunks = await fetchAllProjectReadmeChunks()
+  const result = await replaceProjectReadmeChunks(chunks)
   process.stdout.write(`${JSON.stringify({ ok: true, ...result })}\n`)
 }
 
@@ -50,6 +58,8 @@ async function main(): Promise<void> {
   if (kind === 'resume') return embedResume()
 
   if (kind === 'seed-projects') return embedSeedProjects()
+
+  if (kind === 'readmes') return embedReadmes()
 
   if (kind === 'project') {
     if (!arg) {

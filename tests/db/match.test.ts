@@ -56,4 +56,23 @@ describe('matchChunks', () => {
       /match_chunks RPC failed: permission denied/
     )
   })
+
+  it("preserves the 'project_readme' source string through the normalizer", async () => {
+    vi.mocked(createEmbedding).mockResolvedValue([0])
+    mockClient({
+      data: [
+        {
+          source: 'project_readme',
+          chunk_id: 'c',
+          title: 'UAE Government Policy RAG — Architecture',
+          content: 'hybrid retrieval over Azure AI Search',
+          score: 0.55,
+        },
+      ],
+      error: null,
+    })
+    const result = await matchChunks('test')
+    expect(result[0]?.source).toBe('project_readme')
+    expect(result[0]?.title).toBe('UAE Government Policy RAG — Architecture')
+  })
 })

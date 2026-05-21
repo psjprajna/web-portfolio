@@ -111,6 +111,50 @@ export type Database = {
         }
         Relationships: []
       }
+      project_chunks: {
+        Row: {
+          content: string
+          created_at: string
+          display_order: number
+          embedding: string | null
+          embedding_updated_at: string | null
+          id: string
+          project_id: string
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          display_order?: number
+          embedding?: string | null
+          embedding_updated_at?: string | null
+          id?: string
+          project_id: string
+          section: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          display_order?: number
+          embedding?: string | null
+          embedding_updated_at?: string | null
+          id?: string
+          project_id?: string
+          section?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_chunks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           body_md: string | null
