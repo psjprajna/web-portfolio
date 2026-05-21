@@ -1195,14 +1195,44 @@ body.chat-open .chat-drawer { transform: translateX(0); }
   max-width: 100%;
 }
 .chat-msg-refused {
-  color: var(--ink2);
-  font-style: italic;
-  background: transparent;
-  border-style: dashed;
-  border-color: rgba(17, 17, 17, 0.15);
+  color: var(--ink);
+  background: rgba(200, 148, 26, 0.08);
+  border: 1px solid rgba(200, 148, 26, 0.32);
+  font-style: normal;
+  padding-left: 36px;
+  position: relative;
 }
-html.dark-mode .chat-msg-refused {
-  border-color: rgba(235, 229, 216, 0.18);
+.chat-msg-refused::before {
+  content: 'i';
+  position: absolute;
+  left: 12px;
+  top: 11px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .chat-msg-errored {
   color: var(--ink2);
@@ -1220,28 +1250,20 @@ html.dark-mode .chat-msg-refused {
   51%, 100% { opacity: 0; }
 }
 .chat-sources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
   margin-top: 2px;
-}
-.chat-source-chip {
-  font: 500 10.5px/1 var(--mono);
-  padding: 5px 8px;
-  border-radius: 8px;
-  background: rgba(200, 148, 26, 0.08);
+  font: 400 11.5px/1.5 var(--body);
   color: var(--ink2);
-  border: 1px solid var(--border-soft);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
-.chat-source-chip strong {
+.chat-sources-label {
+  font: 600 9.5px/1 var(--mono);
   color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+.chat-source-ref {
+  font-style: italic;
+  color: var(--ink2);
 }
 
 body.chat-open { overflow: hidden; }

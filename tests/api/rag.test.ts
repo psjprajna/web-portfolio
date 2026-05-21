@@ -105,7 +105,7 @@ describe('POST /api/ai/rag', () => {
       ],
     })
     expect(done).toBe(true)
-    expect(synthesize).toHaveBeenCalledWith('arabic NLP', chunks)
+    expect(synthesize).toHaveBeenCalledWith('arabic NLP', chunks, [])
     expect(from).toHaveBeenCalledWith('rag_queries')
     expect(insert).toHaveBeenCalledTimes(1)
     expect(insert).toHaveBeenCalledWith(
@@ -121,7 +121,7 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('streams refusal (canned string as single token) when matchChunks returns empty; never calls synthesize', async () => {
+  it('streams REFUSAL_EMPTY copy (mentions resume/projects/skills) when matchChunks returns no chunks', async () => {
     vi.mocked(matchChunks).mockResolvedValue([])
     const { insert } = mockInsertChain()
 
@@ -130,7 +130,7 @@ describe('POST /api/ai/rag', () => {
     expect(res.status).toBe(200)
     const { tokens, meta, done } = await parseSseBody(res)
     expect(tokens).toHaveLength(1)
-    expect(tokens[0]).toMatch(/specific information/i)
+    expect(tokens[0]).toMatch(/resume.*projects.*skills/i)
     expect(meta).toMatchObject({ type: 'meta', refused: true, sources: [] })
     expect(done).toBe(true)
     expect(synthesize).not.toHaveBeenCalled()
@@ -138,16 +138,16 @@ describe('POST /api/ai/rag', () => {
       expect.objectContaining({
         query: 'random nonsense query that matches nothing',
         refused: true,
-        response: expect.stringMatching(/specific information/i),
+        response: expect.stringMatching(/resume.*projects.*skills/i),
         retrieved_ids: [],
         relevance_top_score: null,
       })
     )
   })
 
-  it('streams refusal when top chunk score is below threshold (0.25); still logs retrieved ids', async () => {
+  it('streams REFUSAL_LOW copy (mentions grounded context / rephrase) when top score is below threshold (0.30)', async () => {
     const chunks: MatchedChunk[] = [
-      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.18 },
+      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.28 },
     ]
     vi.mocked(matchChunks).mockResolvedValue(chunks)
     const { insert } = mockInsertChain()
@@ -157,7 +157,7 @@ describe('POST /api/ai/rag', () => {
     expect(res.status).toBe(200)
     const { tokens, meta, done } = await parseSseBody(res)
     expect(tokens).toHaveLength(1)
-    expect(tokens[0]).toMatch(/specific information/i)
+    expect(tokens[0]).toMatch(/grounded context|rephrase/i)
     expect(meta).toMatchObject({ type: 'meta', refused: true })
     expect(done).toBe(true)
     expect(synthesize).not.toHaveBeenCalled()
@@ -165,8 +165,65 @@ describe('POST /api/ai/rag', () => {
       expect.objectContaining({
         refused: true,
         retrieved_ids: ['b1'],
-        relevance_top_score: 0.18,
+        relevance_top_score: 0.28,
+        response: expect.stringMatching(/grounded context|rephrase/i),
       })
     )
+  })
+
+  it('passes history array to synthesize when provided in body', async () => {
+    const chunks: MatchedChunk[] = [
+      { source: 'resume', chunkId: 'r1', title: 'GMU', content: 'studied data analytics', score: 0.45 },
+    ]
+    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['ok.']))
+    mockInsertChain()
+
+    const history = [
+      { role: 'user' as const, text: 'What did you do at Scale AI?' },
+      { role: 'assistant' as const, text: 'At Scale AI I worked on RLHF (from my Scale AI work).' },
+    ]
+    const res = await POST(makeRequest({ query: 'What about my education there?', history }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+    expect(synthesize).toHaveBeenCalledTimes(1)
+    expect(synthesize).toHaveBeenCalledWith('What about my education there?', chunks, history)
+  })
+
+  it('clamps history to last 6 turns before passing to synthesize', async () => {
+    const chunks: MatchedChunk[] = [
+      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.5 },
+    ]
+    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['ok.']))
+    mockInsertChain()
+
+    const longHistory = Array.from({ length: 20 }, (_, i) => ({
+      role: (i % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+      text: `turn ${i}`,
+    }))
+    const res = await POST(makeRequest({ query: 'another question', history: longHistory }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+    const callArgs = vi.mocked(synthesize).mock.calls[0]
+    expect(callArgs).toBeDefined()
+    const passedHistory = callArgs![2] as Array<{ role: string; text: string }>
+    expect(passedHistory).toHaveLength(6)
+    expect(passedHistory[0]?.text).toBe('turn 14')
+    expect(passedHistory[5]?.text).toBe('turn 19')
+  })
+
+  it('returns 400 when history contains an invalid role', async () => {
+    mockInsertChain()
+    const res = await POST(
+      makeRequest({
+        query: 'valid query',
+        history: [{ role: 'system', text: 'malicious' }],
+      })
+    )
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'invalid request' })
   })
 })

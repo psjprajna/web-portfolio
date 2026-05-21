@@ -22,7 +22,7 @@ const ABOUT_CHUNKS: readonly BioChunk[] = [
     heading: null,
     display_order: 2,
     content:
-      "AI/ML Engineer with direct experience inside OpenAI's frontier LLM training pipeline (SFT + RLHF/PPO/DPO at Scale AI) and 3+ years building production AI systems on U.S. federal infrastructure for the U.S. Department of Transportation / NHTSA.",
+      "AI/ML Engineer with direct experience inside OpenAI's frontier LLM training pipeline — Team Lead at Scale AI leading 50+ annotators on SFT + RLHF/PPO/DPO evaluations — and 3+ years building production AI systems on U.S. federal infrastructure for the U.S. Department of Transportation / NHTSA.",
   },
   {
     section: 'about',

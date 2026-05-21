@@ -16,6 +16,13 @@ interface Source {
   score: number
 }
 
+interface Turn {
+  role: 'user' | 'assistant'
+  text: string
+}
+
+const HISTORY_MAX_TURNS = 6
+
 interface UserMessage {
   id: number
   role: 'user'
@@ -83,6 +90,21 @@ export function ChatDrawer() {
       const query = queryRaw.trim()
       if (!query || isSending) return
 
+      // Build conversation memory from completed, non-errored prior pairs.
+      // Capped at last HISTORY_MAX_TURNS turns to bound prompt size + cost.
+      const turnHistory: Turn[] = []
+      for (let i = 0; i + 1 < messages.length; i += 2) {
+        const u = messages[i]
+        const a = messages[i + 1]
+        if (!u || !a || u.role !== 'user' || a.role !== 'ai') continue
+        if (a.isStreaming || a.errored) continue
+        turnHistory.push(
+          { role: 'user', text: u.text },
+          { role: 'assistant', text: a.text }
+        )
+      }
+      const history = turnHistory.slice(-HISTORY_MAX_TURNS)
+
       const userId = ++messageIdRef.current
       const aiId = ++messageIdRef.current
       setMessages((prev) => [
@@ -106,7 +128,7 @@ export function ChatDrawer() {
         const res = await fetch('/api/ai/rag', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query }),
+          body: JSON.stringify(history.length > 0 ? { query, history } : { query }),
           signal: controller.signal,
         })
         if (!res.ok || !res.body) {
@@ -160,7 +182,7 @@ export function ChatDrawer() {
         setIsSending(false)
       }
     },
-    [isSending]
+    [isSending, messages]
   )
 
   const onSubmit = (e: React.FormEvent) => {
@@ -221,8 +243,7 @@ export function ChatDrawer() {
                     type="button"
                     className="chat-chip"
                     onClick={() => {
-                      setValue(suggestion)
-                      inputRef.current?.focus()
+                      void sendQuery(suggestion)
                     }}
                   >
                     {suggestion}
@@ -231,7 +252,13 @@ export function ChatDrawer() {
               </div>
             </>
           ) : (
-            <div className="chat-transcript">
+            <div
+              className="chat-transcript"
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
+              aria-busy={isSending}
+            >
               {messages.map((m) =>
                 m.role === 'user' ? (
                   <div key={m.id} className="chat-msg chat-msg-user">
@@ -241,19 +268,40 @@ export function ChatDrawer() {
                   <div key={m.id} className="chat-msg-ai-group">
                     <div
                       className={`chat-msg chat-msg-ai${m.refused ? ' chat-msg-refused' : ''}${m.errored ? ' chat-msg-errored' : ''}`}
+                      aria-hidden={m.isStreaming || undefined}
+                      {...((m.refused || m.errored) && !m.isStreaming
+                        ? { role: 'status' as const }
+                        : {})}
                     >
                       {m.text}
                       {m.isStreaming && <span className="chat-cursor" aria-hidden="true">▍</span>}
                     </div>
-                    {!m.isStreaming && !m.refused && m.sources.length > 0 && (
-                      <div className="chat-sources" aria-label="Sources">
-                        {m.sources.map((s, i) => (
-                          <span key={`${m.id}-${i}`} className="chat-source-chip">
-                            <strong>{s.source}</strong> {s.title}
+                    {!m.isStreaming && <span className="sr-only">{m.text}</span>}
+                    {!m.isStreaming && !m.refused && m.sources.length > 0 && (() => {
+                      const seen = new Set<string>()
+                      const dedup: Source[] = []
+                      for (const s of m.sources) {
+                        const key = `${s.source}::${s.title}`
+                        if (seen.has(key)) continue
+                        seen.add(key)
+                        dedup.push(s)
+                        if (dedup.length === 2) break
+                      }
+                      return (
+                        <div className="chat-sources" aria-label="Sources">
+                          <span className="chat-sources-label">
+                            {dedup.length > 1 ? 'Sources' : 'Source'}:
                           </span>
-                        ))}
-                      </div>
-                    )}
+                          {dedup.map((s, i) => (
+                            <span key={`${m.id}-${i}`} className="chat-source-ref">
+                              {' '}
+                              {s.source} · {s.title}
+                              {i < dedup.length - 1 ? ',' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    })()}
                   </div>
                 )
               )}

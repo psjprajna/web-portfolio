@@ -58,9 +58,9 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
     logoSrc: '/logos/scale-ai.png',
     date: 'Jun 2023 — Jun 2024',
     bullets: [
+      'Team Lead at Scale AI — led 50+ annotators on a frontier-LLM alignment project, guided their work on complex reasoning evaluations, corrected their labels, and maintained team-wide consistency across the alignment task at scale.',
       "Hands inside OpenAI's alignment loop — every evaluation I shipped became preference data that PPO/DPO training optimized against.",
-      'Spent a year generating the human signal that shaped how a frontier LLM reasons about code.',
-      'Sat one layer away from the model: my judgments on code, reasoning, and instruction-following were the reward signal.',
+      'Sat one layer away from the model: my judgments on code, reasoning, and instruction-following were the reward signal that shaped how a frontier LLM reasons about code.',
     ],
   },
   {
