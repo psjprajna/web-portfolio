@@ -6,11 +6,12 @@ import {
   fetchProjectEmbeddingSource,
   upsertProjectEmbedding,
 } from '@/lib/db/projects'
+import { replaceBioChunks } from '@/lib/db/bio'
 
-const bodySchema = z.object({
-  type: z.literal('project'),
-  id: z.string().uuid(),
-})
+const bodySchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('project'), id: z.string().uuid() }),
+  z.object({ type: z.literal('bio') }),
+])
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = await createSupabaseServerClient()
@@ -32,6 +33,15 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = bodySchema.safeParse(rawBody)
   if (!parsed.success) {
     return Response.json({ error: 'invalid body' }, { status: 400 })
+  }
+
+  if (parsed.data.type === 'bio') {
+    try {
+      const result = await replaceBioChunks()
+      return Response.json({ ok: true, ...result })
+    } catch {
+      return Response.json({ error: 'bio embed failed' }, { status: 500 })
+    }
   }
 
   const source = await fetchProjectEmbeddingSource(parsed.data.id)
