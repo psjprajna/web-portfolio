@@ -15,7 +15,8 @@
     "preview": "opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv",
-    "embed": "tsx --env-file=.env.local scripts/embed.ts"
+    "embed": "tsx --env-file=.env.local scripts/embed.ts",
+    "probe": "tsx --env-file=.env.local scripts/probe.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
