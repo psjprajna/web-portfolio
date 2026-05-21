@@ -137,6 +137,7 @@ export async function expandQuery(query: string): Promise<string[]> {
         unique.push(r)
       }
     }
+    console.log('[expandQuery]', { original: trimmed, rewrites: unique.slice(1) })
     return unique
   } catch (err) {
     console.warn('[expandQuery] expansion failed, falling back to original:', err)

@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { matchChunks, type MatchedChunk } from '@/lib/db/match'
-import { synthesize } from '@/lib/ai/synthesize'
+import { matchChunksMulti, type MatchedChunk } from '@/lib/db/match'
+import { synthesize, expandQuery } from '@/lib/ai/synthesize'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 import * as answerCache from '@/lib/cache/answer-cache'
 
-vi.mock('@/lib/db/match', () => ({ matchChunks: vi.fn() }))
-vi.mock('@/lib/ai/synthesize', () => ({ synthesize: vi.fn() }))
+vi.mock('@/lib/db/match', () => ({
+  matchChunks: vi.fn(),
+  matchChunksMulti: vi.fn(),
+}))
+vi.mock('@/lib/ai/synthesize', () => ({
+  synthesize: vi.fn(),
+  expandQuery: vi.fn(),
+}))
 vi.mock('@/lib/supabase/service', () => ({ createSupabaseServiceClient: vi.fn() }))
 vi.mock('@/lib/cache/answer-cache', () => ({
   buildKey: vi.fn((q: string, lastUserTurn?: string) => `k:${q}|${lastUserTurn ?? ''}`),
@@ -73,6 +79,9 @@ describe('POST /api/ai/rag', () => {
     // Default cache.get() to null so existing tests treat every call as a miss.
     // Individual tests override this for hit-path scenarios.
     vi.mocked(answerCache.get).mockReturnValue(null)
+    // Default expansion to single-query identity. Preserves single-call retrieval
+    // behavior for tests that don't customize expansion explicitly.
+    vi.mocked(expandQuery).mockImplementation(async (q: string) => [q])
   })
 
   it('returns 400 when request body is not valid JSON', async () => {
@@ -94,7 +103,7 @@ describe('POST /api/ai/rag', () => {
       { source: 'project', chunkId: 'p1', title: 'Arabic Sentiment Analysis', content: 'AraBERT for Gulf dialects.', score: 0.527 },
       { source: 'bio', chunkId: 'b1', title: 'GenAI / LLMs', content: 'fine-tuning expertise', score: 0.433 },
     ]
-    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
     vi.mocked(synthesize).mockImplementation(() => yieldTokens(['Arabic ', 'Sentiment ', 'Analysis (from project: Arabic Sentiment Analysis).']))
     const { from, insert } = mockInsertChain()
 
@@ -130,8 +139,8 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('streams REFUSAL_EMPTY copy (mentions resume/projects/skills) when matchChunks returns no chunks', async () => {
-    vi.mocked(matchChunks).mockResolvedValue([])
+  it('streams REFUSAL_EMPTY copy (mentions resume/projects/skills) when matchChunksMulti returns no chunks', async () => {
+    vi.mocked(matchChunksMulti).mockResolvedValue([])
     const { insert } = mockInsertChain()
 
     const res = await POST(makeRequest({ query: 'random nonsense query that matches nothing' }))
@@ -158,7 +167,7 @@ describe('POST /api/ai/rag', () => {
     const chunks: MatchedChunk[] = [
       { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.28 },
     ]
-    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
     const { insert } = mockInsertChain()
 
     const res = await POST(makeRequest({ query: 'fictional query about cats and dogs' }))
@@ -184,7 +193,7 @@ describe('POST /api/ai/rag', () => {
     const chunks: MatchedChunk[] = [
       { source: 'resume', chunkId: 'r1', title: 'GMU', content: 'studied data analytics', score: 0.45 },
     ]
-    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
     vi.mocked(synthesize).mockImplementation(() => yieldTokens(['ok.']))
     mockInsertChain()
 
@@ -204,7 +213,7 @@ describe('POST /api/ai/rag', () => {
     const chunks: MatchedChunk[] = [
       { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.5 },
     ]
-    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
     vi.mocked(synthesize).mockImplementation(() => yieldTokens(['ok.']))
     mockInsertChain()
 
@@ -240,7 +249,7 @@ describe('POST /api/ai/rag', () => {
     const chunks: MatchedChunk[] = [
       { source: 'project', chunkId: 'p1', title: 'Arabic Sentiment Analysis', content: 'AraBERT for Gulf dialects.', score: 0.527 },
     ]
-    vi.mocked(matchChunks).mockResolvedValue(chunks)
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
     vi.mocked(synthesize).mockImplementation(() => yieldTokens(['answer text.']))
     vi.mocked(answerCache.get).mockReturnValue(null) // explicit miss
     const { insert } = mockInsertChain()
@@ -251,7 +260,7 @@ describe('POST /api/ai/rag', () => {
     await parseSseBody(res)
 
     // Real path ran end-to-end
-    expect(matchChunks).toHaveBeenCalledTimes(1)
+    expect(matchChunksMulti).toHaveBeenCalledTimes(1)
     expect(synthesize).toHaveBeenCalledTimes(1)
 
     // Cache lookup attempted with the built key
@@ -276,7 +285,7 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('returns cached answer (skips matchChunks + synthesize) and logs cache_hit:answer on cache hit', async () => {
+  it('returns cached answer (skips matchChunksMulti + synthesize) and logs cache_hit:answer on cache hit', async () => {
     const cachedSources = [
       { source: 'project', title: 'Arabic Sentiment Analysis', score: 0.527, chunkId: 'p1' },
       { source: 'bio', title: 'GenAI / LLMs', score: 0.433, chunkId: 'b1' },
@@ -306,7 +315,7 @@ describe('POST /api/ai/rag', () => {
     expect(done).toBe(true)
 
     // Retrieval + synthesis short-circuited
-    expect(matchChunks).not.toHaveBeenCalled()
+    expect(matchChunksMulti).not.toHaveBeenCalled()
     expect(synthesize).not.toHaveBeenCalled()
 
     // Cache not re-populated on a hit
@@ -324,4 +333,83 @@ describe('POST /api/ai/rag', () => {
       })
     )
   })
+
+  it('passes all expandQuery rewrites to matchChunksMulti (multi-query retrieval)', async () => {
+    const chunks: MatchedChunk[] = [
+      { source: 'project', chunkId: 'p1', title: 'Scale AI', content: 'RLHF Team Lead.', score: 0.6 },
+      { source: 'bio', chunkId: 'b1', title: 'About', content: 'Three years experience.', score: 0.5 },
+    ]
+    vi.mocked(expandQuery).mockResolvedValue([
+      'are you a senior or junior?',
+      'Prajna years experience role titles team lead',
+      'Prajna current job seniority engineer',
+    ])
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['Three plus years.']))
+    const { insert } = mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'are you a senior or junior?' }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+
+    expect(expandQuery).toHaveBeenCalledTimes(1)
+    expect(expandQuery).toHaveBeenCalledWith('are you a senior or junior?')
+
+    expect(matchChunksMulti).toHaveBeenCalledTimes(1)
+    expect(matchChunksMulti).toHaveBeenCalledWith(
+      [
+        'are you a senior or junior?',
+        'Prajna years experience role titles team lead',
+        'Prajna current job seniority engineer',
+      ],
+      3,
+      5,
+    )
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        relevance_top_score: 0.6,
+      })
+    )
+  })
+
+  it('preserves single-call retrieval when expandQuery returns only the original query (Haiku-error fallback path)', async () => {
+    const chunks: MatchedChunk[] = [
+      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.5 },
+    ]
+    vi.mocked(expandQuery).mockResolvedValue(['original only'])
+    vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['ok.']))
+    mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'original only' }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+
+    expect(expandQuery).toHaveBeenCalledTimes(1)
+    expect(matchChunksMulti).toHaveBeenCalledWith(['original only'], 3, 5)
+  })
+
+  it('skips expandQuery entirely on cache hit (zero Haiku spend on repeats)', async () => {
+    vi.mocked(answerCache.get).mockReturnValue({
+      answer: 'cached.',
+      sources: [{ source: 'bio', title: 'About', score: 0.5, chunkId: 'b1' }],
+      expiresAt: Date.now() + 60_000,
+    })
+    // Even if expandQuery WOULD produce nontrivial rewrites, the cache short-circuit
+    // must run BEFORE expansion is invoked.
+    vi.mocked(expandQuery).mockResolvedValue(['original', 'rewrite 1', 'rewrite 2'])
+    mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'cached query' }))
+
+    expect(res.status).toBe(200)
+    await parseSseBody(res)
+
+    expect(expandQuery).not.toHaveBeenCalled()
+    expect(matchChunksMulti).not.toHaveBeenCalled()
+    expect(synthesize).not.toHaveBeenCalled()
+  })
+
 })

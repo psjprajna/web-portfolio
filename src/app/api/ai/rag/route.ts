@@ -1,27 +1,29 @@
 /**
  * RAG synthesis route — failure modes inventory:
  *
- * F1. Voyage embed API 4xx/5xx/timeout → matchChunks throws → JSON 500.
- * F2. Empty retrieval (chunks.length === 0) → REFUSAL_EMPTY copy + telemetry refused=true.
- * F3. Weak retrieval (top score < REFUSAL_THRESHOLD) → REFUSAL_LOW copy + telemetry refused=true.
- * F4. Anthropic API timeout (>30s) — synthesize.ts wraps the stream with a setTimeout that
- *     calls stream.abort() at the wall-clock limit. The for-await loop throws and is caught
- *     by the stream's outer try, emitting an SSE `error` event.
- * F5. Anthropic rate limit (429) → SDK throws inside the async generator → caught by the
- *     stream's outer try, emits SSE `error` event, telemetry row still written from `finally`.
- * F6. Cloudflare Worker CPU limit → worker killed; telemetry row never written; client sees
- *     an aborted stream. No mitigation possible in-process.
- * F7. Stream cancelled by client (drawer close → AbortController) → telemetry still fires
- *     from the stream's `finally`. SDK keeps streaming server-side (open Anthropic SDK
- *     carry-forward — `messages.stream` does not yet honor AbortSignal).
- * F8. Prompt injection in visitor query → handled by the system prompt's anti-injection rule
- *     + the score-based refusal threshold as backstop.
- * F9. History tampering (oversized text, invalid role, > 50 turns) → Zod schema rejects
- *     before any retrieval / synthesis → 400 generic.
+ * F1.  Voyage embed API 4xx/5xx/timeout → matchChunksMulti throws → JSON 500.
+ * F2.  Empty retrieval (chunks.length === 0) → REFUSAL_EMPTY copy + telemetry refused=true.
+ * F3.  Weak retrieval (top score < REFUSAL_THRESHOLD) → REFUSAL_LOW copy + telemetry refused=true.
+ * F4.  Anthropic API timeout (>30s) — synthesize.ts wraps the stream with a setTimeout that
+ *      calls stream.abort() at the wall-clock limit. The for-await loop throws and is caught
+ *      by the stream's outer try, emitting an SSE `error` event.
+ * F5.  Anthropic rate limit (429) → SDK throws inside the async generator → caught by the
+ *      stream's outer try, emits SSE `error` event, telemetry row still written from `finally`.
+ * F6.  Cloudflare Worker CPU limit → worker killed; telemetry row never written; client sees
+ *      an aborted stream. No mitigation possible in-process.
+ * F7.  Stream cancelled by client (drawer close → AbortController) → telemetry still fires
+ *      from the stream's `finally`. SDK keeps streaming server-side (open Anthropic SDK
+ *      carry-forward — `messages.stream` does not yet honor AbortSignal).
+ * F8.  Prompt injection in visitor query → handled by the system prompt's anti-injection rule
+ *      + the score-based refusal threshold as backstop.
+ * F9.  History tampering (oversized text, invalid role, > 50 turns) → Zod schema rejects
+ *      before any retrieval / synthesis → 400 generic.
+ * F10. Haiku expansion API fails (4xx/5xx/timeout) → expandQuery catches and returns
+ *      [trimmed] alone → matchChunksMulti runs as a single-query retrieval. No degradation.
  */
 import { z } from 'zod'
-import { matchChunks, type MatchedChunk } from '@/lib/db/match'
-import { synthesize, type SynthesizeSignals, type Turn } from '@/lib/ai/synthesize'
+import { matchChunksMulti, type MatchedChunk } from '@/lib/db/match'
+import { expandQuery, synthesize, type SynthesizeSignals, type Turn } from '@/lib/ai/synthesize'
 import * as answerCache from '@/lib/cache/answer-cache'
 import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
@@ -34,6 +36,7 @@ const REFUSAL_LOW =
   "I don't have enough grounded context to answer that confidently. Try rephrasing, or ask about a specific project, role, or skill of mine."
 const MODEL_NAME = 'claude-sonnet-4-6'
 const TOP_K = 5
+const PER_QUERY_TOP_K = 3
 const HISTORY_MAX_TURNS = 6
 const HISTORY_MAX_INBOUND = 50
 
@@ -143,7 +146,10 @@ export async function POST(request: Request): Promise<Response> {
 
   let chunks: MatchedChunk[]
   try {
-    chunks = await matchChunks(query, TOP_K)
+    // expandQuery returns [original, ...rewrites] (1-4 entries). On Haiku
+    // error it falls back to [original] alone — single-call behavior preserved.
+    const expanded = await expandQuery(query)
+    chunks = await matchChunksMulti(expanded, PER_QUERY_TOP_K, TOP_K)
   } catch (err) {
     console.error('POST /api/ai/rag retrieval failed:', err)
     return Response.json({ error: 'something went wrong' }, { status: 500 })
