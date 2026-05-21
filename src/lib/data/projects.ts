@@ -32,6 +32,7 @@ export const PROJECTS: readonly Project[] = [
     thumbIcon: 'play_circle',
     metaArchitecture: { label: 'Architecture', value: 'RAG / Azure AI Search' },
     metaImpact: { label: 'Impact', value: '+20% context precision', accent: true },
+    githubUrl: 'https://github.com/psjprajna/UAE-Government-Policy-RAG',
   },
   {
     num: '02',
@@ -42,6 +43,7 @@ export const PROJECTS: readonly Project[] = [
     thumbIcon: 'image',
     metaArchitecture: { label: 'Architecture', value: 'Fine-Tuning / AraBERT + LoRA' },
     metaImpact: { label: 'Impact', value: '+18% F1 (Gulf Arabic)', accent: true },
+    githubUrl: 'https://github.com/psjprajna/arabic-sentiment-mlops/',
   },
   {
     num: '03',
