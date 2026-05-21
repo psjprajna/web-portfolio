@@ -296,7 +296,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_chunks: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          chunk_id: string
+          content: string
+          score: number
+          source: string
+          title: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
