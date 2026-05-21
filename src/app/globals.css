@@ -1148,6 +1148,101 @@ body.chat-open .chat-drawer { transform: translateX(0); }
   flex-shrink: 0;
 }
 .chat-send:hover { opacity: 0.85; transform: translateX(1px); }
+.chat-send:disabled,
+.chat-send[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+.chat-input:disabled { opacity: 0.6; cursor: wait; }
+
+/* Transcript — chat-style message list. Renders inside .chat-body when
+   messages.length > 0 (replaces welcome+chips). User bubbles right-aligned,
+   AI bubbles left-aligned, conversational order top-to-bottom. */
+.chat-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+.chat-msg {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font: 400 14px/1.55 var(--sans);
+  color: var(--ink);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.chat-msg-user {
+  align-self: flex-end;
+  background: var(--gold-tint);
+  border: 1px solid rgba(200, 148, 26, 0.22);
+  border-bottom-right-radius: 6px;
+}
+.chat-msg-ai-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 92%;
+}
+.chat-msg-ai {
+  align-self: flex-start;
+  background: var(--warm-white);
+  border: 1px solid var(--border-soft);
+  border-bottom-left-radius: 6px;
+  max-width: 100%;
+}
+.chat-msg-refused {
+  color: var(--ink2);
+  font-style: italic;
+  background: transparent;
+  border-style: dashed;
+  border-color: rgba(17, 17, 17, 0.15);
+}
+html.dark-mode .chat-msg-refused {
+  border-color: rgba(235, 229, 216, 0.18);
+}
+.chat-msg-errored {
+  color: var(--ink2);
+  border-style: dashed;
+}
+.chat-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--gold);
+  font-weight: 700;
+  animation: chat-cursor-blink 1s steps(2, end) infinite;
+}
+@keyframes chat-cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.chat-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+.chat-source-chip {
+  font: 500 10.5px/1 var(--mono);
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(200, 148, 26, 0.08);
+  color: var(--ink2);
+  border: 1px solid var(--border-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chat-source-chip strong {
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 9.5px;
+}
 
 body.chat-open { overflow: hidden; }
 

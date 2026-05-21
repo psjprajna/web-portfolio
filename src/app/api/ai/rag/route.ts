@@ -53,41 +53,66 @@ export async function POST(request: Request): Promise<Response> {
   const client = createSupabaseServiceClient()
   const t0 = Date.now()
 
+  let chunks: MatchedChunk[]
   try {
-    const chunks: MatchedChunk[] = await matchChunks(query, TOP_K)
-    const topScore = chunks[0]?.score ?? null
-    const shouldRefuse =
-      chunks.length === 0 || (topScore !== null && topScore < REFUSAL_THRESHOLD)
-
-    let answer: string
-    let refused: boolean
-    if (shouldRefuse) {
-      answer = REFUSAL_TEXT
-      refused = true
-    } else {
-      answer = await synthesize(query, chunks)
-      refused = false
-    }
-
-    const sources = chunks.map((c) => ({
-      source: c.source,
-      title: c.title,
-      score: c.score,
-    }))
-
-    await logRagQuery(client, {
-      query,
-      retrieved_ids: chunks.map((c) => c.chunkId),
-      response: answer,
-      latency_ms: Date.now() - t0,
-      model: MODEL_NAME,
-      refused,
-      relevance_top_score: topScore,
-    })
-
-    return Response.json({ answer, sources, refused }, { status: 200 })
+    chunks = await matchChunks(query, TOP_K)
   } catch (err) {
-    console.error('POST /api/ai/rag failed:', err)
+    console.error('POST /api/ai/rag retrieval failed:', err)
     return Response.json({ error: 'something went wrong' }, { status: 500 })
   }
+
+  const topScore = chunks[0]?.score ?? null
+  const shouldRefuse =
+    chunks.length === 0 || (topScore !== null && topScore < REFUSAL_THRESHOLD)
+  const sources = chunks.map((c) => ({
+    source: c.source,
+    title: c.title,
+    score: c.score,
+  }))
+
+  const encoder = new TextEncoder()
+  const sse = (payload: unknown) =>
+    encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const buffer: string[] = []
+      try {
+        if (shouldRefuse) {
+          controller.enqueue(sse({ type: 'token', text: REFUSAL_TEXT }))
+          buffer.push(REFUSAL_TEXT)
+        } else {
+          for await (const token of synthesize(query, chunks)) {
+            controller.enqueue(sse({ type: 'token', text: token }))
+            buffer.push(token)
+          }
+        }
+        controller.enqueue(sse({ type: 'meta', sources, refused: shouldRefuse }))
+        controller.enqueue(sse({ type: 'done' }))
+      } catch (err) {
+        console.error('POST /api/ai/rag stream failed:', err)
+        controller.enqueue(sse({ type: 'error' }))
+      } finally {
+        controller.close()
+        void logRagQuery(client, {
+          query,
+          retrieved_ids: chunks.map((c) => c.chunkId),
+          response: buffer.join(''),
+          latency_ms: Date.now() - t0,
+          model: MODEL_NAME,
+          refused: shouldRefuse,
+          relevance_top_score: topScore,
+        })
+      }
+    },
+  })
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
+  })
 }

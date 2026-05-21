@@ -32,21 +32,21 @@ function buildUserMessage(query: string, chunks: RetrievedChunk[]): string {
   return `Question: ${query}\n\nContext:\n${formatted}`
 }
 
-export async function synthesize(
+export async function* synthesize(
   query: string,
   chunks: RetrievedChunk[]
-): Promise<string> {
+): AsyncGenerator<string, void, unknown> {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
-  const message = await client.messages.create({
+  const stream = client.messages.stream({
     model: ANTHROPIC_MODEL,
     max_tokens: MAX_TOKENS,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: buildUserMessage(query, chunks) }],
   })
 
-  const block = message.content[0]
-  if (!block || block.type !== 'text') {
-    throw new Error('synthesize: unexpected response shape from Anthropic')
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      yield event.delta.text
+    }
   }
-  return block.text
 }

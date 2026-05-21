@@ -27,6 +27,40 @@ function makeRequest(body: unknown): Request {
   return new Request('http://localhost/api/ai/rag', init)
 }
 
+type SseEvent =
+  | { type: 'token'; text: string }
+  | { type: 'meta'; sources: Array<{ source: string; title: string; score: number }>; refused: boolean }
+  | { type: 'done' }
+  | { type: 'error' }
+
+interface ParsedSse {
+  events: SseEvent[]
+  tokens: string[]
+  meta: Extract<SseEvent, { type: 'meta' }> | null
+  done: boolean
+}
+
+async function parseSseBody(res: Response): Promise<ParsedSse> {
+  const text = await res.text()
+  const events: SseEvent[] = []
+  for (const line of text.split('\n')) {
+    if (!line.startsWith('data: ')) continue
+    const payload = line.slice('data: '.length).trim()
+    if (!payload) continue
+    events.push(JSON.parse(payload) as SseEvent)
+  }
+  const tokens = events.filter((e): e is Extract<SseEvent, { type: 'token' }> => e.type === 'token').map((e) => e.text)
+  const meta = events.find((e): e is Extract<SseEvent, { type: 'meta' }> => e.type === 'meta') ?? null
+  const done = events.some((e) => e.type === 'done')
+  // Flush any microtasks queued by stream finally (telemetry insert)
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  return { events, tokens, meta, done }
+}
+
+async function* yieldTokens(tokens: string[]): AsyncGenerator<string, void, unknown> {
+  for (const t of tokens) yield t
+}
+
 describe('POST /api/ai/rag', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -46,28 +80,31 @@ describe('POST /api/ai/rag', () => {
     expect(await res.json()).toEqual({ error: 'invalid request' })
   })
 
-  it('returns 200 with answer + sources + refused=false on happy path; logs telemetry', async () => {
+  it('streams 200 SSE with token + meta + done events on happy path; logs telemetry', async () => {
     const chunks: MatchedChunk[] = [
       { source: 'project', chunkId: 'p1', title: 'Arabic Sentiment Analysis', content: 'AraBERT for Gulf dialects.', score: 0.527 },
       { source: 'bio', chunkId: 'b1', title: 'GenAI / LLMs', content: 'fine-tuning expertise', score: 0.433 },
     ]
     vi.mocked(matchChunks).mockResolvedValue(chunks)
-    vi.mocked(synthesize).mockResolvedValue(
-      'Arabic Sentiment Analysis is a fine-tuned AraBERT model (from project: Arabic Sentiment Analysis).'
-    )
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['Arabic ', 'Sentiment ', 'Analysis (from project: Arabic Sentiment Analysis).']))
     const { from, insert } = mockInsertChain()
 
     const res = await POST(makeRequest({ query: 'arabic NLP' }))
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({
-      answer: expect.stringContaining('AraBERT') as unknown as string,
+    expect(res.headers.get('content-type')).toBe('text/event-stream')
+
+    const { tokens, meta, done } = await parseSseBody(res)
+    expect(tokens).toEqual(['Arabic ', 'Sentiment ', 'Analysis (from project: Arabic Sentiment Analysis).'])
+    expect(meta).toMatchObject({
+      type: 'meta',
+      refused: false,
       sources: [
         { source: 'project', title: 'Arabic Sentiment Analysis', score: 0.527 },
         { source: 'bio', title: 'GenAI / LLMs', score: 0.433 },
       ],
-      refused: false,
     })
+    expect(done).toBe(true)
     expect(synthesize).toHaveBeenCalledWith('arabic NLP', chunks)
     expect(from).toHaveBeenCalledWith('rag_queries')
     expect(insert).toHaveBeenCalledTimes(1)
@@ -75,7 +112,7 @@ describe('POST /api/ai/rag', () => {
       expect.objectContaining({
         query: 'arabic NLP',
         retrieved_ids: ['p1', 'b1'],
-        response: expect.stringContaining('AraBERT'),
+        response: 'Arabic Sentiment Analysis (from project: Arabic Sentiment Analysis).',
         model: 'claude-sonnet-4-6',
         refused: false,
         relevance_top_score: 0.527,
@@ -84,17 +121,18 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('returns refusal (canned string) when matchChunks returns empty; never calls synthesize', async () => {
+  it('streams refusal (canned string as single token) when matchChunks returns empty; never calls synthesize', async () => {
     vi.mocked(matchChunks).mockResolvedValue([])
     const { insert } = mockInsertChain()
 
     const res = await POST(makeRequest({ query: 'random nonsense query that matches nothing' }))
 
     expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.refused).toBe(true)
-    expect(body.answer).toMatch(/specific information/i)
-    expect(body.sources).toEqual([])
+    const { tokens, meta, done } = await parseSseBody(res)
+    expect(tokens).toHaveLength(1)
+    expect(tokens[0]).toMatch(/specific information/i)
+    expect(meta).toMatchObject({ type: 'meta', refused: true, sources: [] })
+    expect(done).toBe(true)
     expect(synthesize).not.toHaveBeenCalled()
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -107,7 +145,7 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('returns refusal when top chunk score is below threshold (0.25); still logs retrieved ids', async () => {
+  it('streams refusal when top chunk score is below threshold (0.25); still logs retrieved ids', async () => {
     const chunks: MatchedChunk[] = [
       { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.18 },
     ]
@@ -117,8 +155,11 @@ describe('POST /api/ai/rag', () => {
     const res = await POST(makeRequest({ query: 'fictional query about cats and dogs' }))
 
     expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.refused).toBe(true)
+    const { tokens, meta, done } = await parseSseBody(res)
+    expect(tokens).toHaveLength(1)
+    expect(tokens[0]).toMatch(/specific information/i)
+    expect(meta).toMatchObject({ type: 'meta', refused: true })
+    expect(done).toBe(true)
     expect(synthesize).not.toHaveBeenCalled()
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
