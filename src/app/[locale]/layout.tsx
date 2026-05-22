@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
-import { setRequestLocale } from 'next-intl/server'
+import { getMessages, setRequestLocale } from 'next-intl/server'
 import {
   Inter,
   Playfair_Display,
@@ -76,6 +76,7 @@ export default async function LocaleLayout({
     notFound()
   }
   setRequestLocale(locale)
+  const messages = await getMessages()
 
   return (
     <html
@@ -95,7 +96,9 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="on-hero" suppressHydrationWarning>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   )
