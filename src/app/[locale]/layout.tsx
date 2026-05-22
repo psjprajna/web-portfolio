@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
+import { notFound } from 'next/navigation'
+import { NextIntlClientProvider, hasLocale } from 'next-intl'
+import { setRequestLocale } from 'next-intl/server'
 import {
   Inter,
   Playfair_Display,
   Plus_Jakarta_Sans,
   JetBrains_Mono,
+  Noto_Sans_Arabic,
 } from 'next/font/google'
-import './globals.css'
+import { routing } from '@/i18n/routing'
+import '../globals.css'
 
 const inter = Inter({
   variable: '--font-inter',
@@ -36,6 +42,13 @@ const jetbrains = JetBrains_Mono({
   weight: ['400', '500'],
 })
 
+const notoArabic = Noto_Sans_Arabic({
+  variable: '--font-noto-arabic',
+  subsets: ['arabic'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
+
 export const metadata: Metadata = {
   title: 'Prajna Shetty — Applied AI Engineer',
   description:
@@ -51,19 +64,30 @@ export const viewport: Viewport = {
 
 const prePaintTheme = `(function(){try{if(localStorage.getItem('ps-theme')==='dark'){document.documentElement.classList.add('dark-mode');}}catch(e){}})();`
 
-export default function RootLayout({
+export default async function LocaleLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode
+  params: Promise<{ locale: string }>
 }>) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
+  setRequestLocale(locale)
+
   return (
     <html
-      lang="en"
-      className={`${inter.variable} ${playfair.variable} ${jakarta.variable} ${jetbrains.variable} antialiased`}
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      className={`${inter.variable} ${playfair.variable} ${jakarta.variable} ${jetbrains.variable} ${notoArabic.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: prePaintTheme }} />
+        <Script id="prepaint-theme" strategy="beforeInteractive">
+          {prePaintTheme}
+        </Script>
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap"
@@ -71,7 +95,7 @@ export default function RootLayout({
         />
       </head>
       <body className="on-hero" suppressHydrationWarning>
-        {children}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   )
