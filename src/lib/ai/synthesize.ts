@@ -101,9 +101,46 @@ A: I have 3+ years of production AI experience — shipping LangGraph multi-agen
 //
 // Cost: ~200 input + ~150 output Haiku tokens per call (~$0.00015).
 // ─────────────────────────────────────────────────────────────────────────────
-const EXPANSION_SYSTEM = `Rewrite the visitor's question into 3 search queries that would retrieve the most relevant portfolio content about Prajna Shetty (an AI/ML engineer in Dubai). Fix typos. Expand short evaluative questions ("are you senior?", "are you good?") into concrete retrieval terms ("Prajna years experience role titles team lead", "Prajna current job seniority"). Each query should be 4-10 words.
+// Sentinel: Haiku emits this on a single line when refusing to rewrite an
+// off-corpus or degenerate input. expandQuery detects it (case-insensitive,
+// first non-empty line) and returns [trimmed] alone — same path as the F10
+// Anthropic-failure fallback, which preserves correct single-query noise
+// rejection at ~0.20 cosine similarity.
+const EXPANSION_REFUSE_SENTINEL = 'NO_REWRITE'
 
-Output EXACTLY 3 queries, one per line. No numbering, no prose, no explanation.`
+const EXPANSION_SYSTEM = `You rewrite a visitor's question about Prajna Shetty (an AI/ML engineer based in Dubai) into search queries that retrieve relevant portfolio content. The portfolio covers her AI/ML projects, RAG and LLM work, federal infrastructure deployments at NHTSA, Scale AI RLHF/team-lead work, programming languages and frameworks (Python, TypeScript, FastAPI, Next.js, React, Pandas), cloud platforms (AWS, Azure), data tooling (PostgreSQL, MySQL, Power BI), and her education (George Mason University, NMIT).
+
+If the visitor's question relates to that scope — including technologies she might have used, evaluative questions about her experience level, or specific projects — output 3 search queries, one per line, each 4-10 words. Fix typos. Do NOT prepend "Prajna" or "Prajna Shetty" to rewrites unless the visitor mentioned her by name OR the question is evaluative about her ("are you senior?", "how good are you?"). For factual queries that mention specific technologies, projects, or topics, keep rewrites focused on those nouns.
+
+If the visitor's question is clearly off-corpus (recipes, weather, sports, news, general world knowledge, non-portfolio topics) OR degenerate (prose without a question, conversational fragments like "tell me more" without a referent, fewer than 3 meaningful tokens), output exactly: NO_REWRITE
+
+Examples:
+
+Q: are you a senior or junior engineer?
+A:
+Prajna years experience role titles team lead
+Prajna current job seniority engineer
+Prajna AI ML engineer Dubai experience
+
+Q: did you use python at syneren?
+A:
+Python at Syneren Technology Corporation
+Python LangGraph FastAPI Syneren stack
+Python data tooling Syneren engineer
+
+Q: what does the uae government policy rag architecture look like?
+A:
+UAE Government Policy RAG architecture
+hybrid retrieval Azure AI Search BGE reranker
+RAGAS evaluation LangFuse observability policy RAG
+
+Q: what's the weather in tokyo tomorrow?
+A: NO_REWRITE
+
+Q: tell me more
+A: NO_REWRITE
+
+Output only the queries OR the literal token NO_REWRITE. No numbering, no prose, no explanation.`
 
 export async function expandQuery(query: string): Promise<string[]> {
   const trimmed = query.trim()
@@ -120,6 +157,19 @@ export async function expandQuery(query: string): Promise<string[]> {
 
     const block = result.content[0]
     const text = block && block.type === 'text' ? block.text : ''
+
+    // Sentinel detection: Haiku refuses to rewrite off-corpus or degenerate
+    // inputs by emitting NO_REWRITE on a single line. Check FIRST non-empty
+    // line only (not "any line") — the prompt itself contains NO_REWRITE as
+    // an instruction, so substring or any-line match would risk false-positives
+    // from Haiku echoing prompt fragments. Exact match on lowercased trimmed
+    // first line keeps the contract crisp.
+    const firstLine = text.split('\n').map((s) => s.trim()).find((s) => s.length > 0)
+    if (firstLine && firstLine.toLowerCase() === EXPANSION_REFUSE_SENTINEL.toLowerCase()) {
+      console.log('[expandQuery] sentinel detected, returning single-query identity')
+      return [trimmed]
+    }
+
     const rewrites = text
       .split('\n')
       .map((s) => s.trim())
