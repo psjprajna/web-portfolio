@@ -14,7 +14,9 @@
     "build:worker": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv",
+    "embed": "tsx --env-file=.env.local scripts/embed.ts",
+    "probe": "tsx --env-file=.env.local scripts/probe.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
@@ -51,7 +53,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "jsdom": "^29.1.1",
+    "supabase": "^2.100.1",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5",
     "vitest": "^4.1.5",
     "wrangler": "^4.92.0"

@@ -21,7 +21,7 @@ function getAllTsFiles(dir: string): string[] {
 
 function getImports(filePath: string): string[] {
   const content = readFileSync(filePath, 'utf-8')
-  const importRegex = /^import\s+.*?from\s+['"]([^'"]+)['"]/gm
+  const importRegex = /import\s+(?:[\s\S]*?)from\s+['"]([^'"]+)['"]/g
   const requireRegex = /require\(['"]([^'"]+)['"]\)/g
   const imports: string[] = []
   let match
@@ -37,7 +37,8 @@ describe('Architecture Boundaries', () => {
 
     for (const dir of uiDirs) {
       try {
-        const files = getAllTsFiles(dir)
+        // API routes are server-side and ARE permitted to import lib/db — exclude from UI scan
+        const files = getAllTsFiles(dir).filter((f) => !f.includes(`${join('app', 'api')}`))
         for (const file of files) {
           const imports = getImports(file)
           for (const imp of imports) {
