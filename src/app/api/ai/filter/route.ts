@@ -45,12 +45,7 @@ async function logFilterQuery(
   payload: TelemetryPayload
 ): Promise<void> {
   try {
-    // The `feature` column was added by migration 007; once
-    // `npx supabase gen types --linked` regenerates src/lib/db/types.ts
-    // post-migration the `as never` cast becomes redundant but harmless.
-    // Until then, the generated Insert type narrows `feature` to `never`
-    // and would block typecheck. Same pragma as tests/api/rag.test.ts:27.
-    const { error } = await client.from('rag_queries').insert(payload as never)
+    const { error } = await client.from('rag_queries').insert(payload)
     if (error) {
       console.error('logFilterQuery: insert error', error.message)
     }

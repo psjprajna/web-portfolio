@@ -213,6 +213,7 @@ export type Database = {
         Row: {
           cache_hit: string | null
           created_at: string
+          feature: string
           id: string
           latency_ms: number | null
           model: string | null
@@ -227,6 +228,7 @@ export type Database = {
         Insert: {
           cache_hit?: string | null
           created_at?: string
+          feature?: string
           id?: string
           latency_ms?: number | null
           model?: string | null
@@ -241,6 +243,7 @@ export type Database = {
         Update: {
           cache_hit?: string | null
           created_at?: string
+          feature?: string
           id?: string
           latency_ms?: number | null
           model?: string | null
