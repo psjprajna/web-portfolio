@@ -1,9 +1,9 @@
 # Prajna Shetty — AI Portfolio
 
 A production AI portfolio for an Applied AI engineer (Dubai, UAE). The site itself
-demonstrates the work it describes: RAG over the resume and bio, semantic project
-filtering, persona-adaptive UX. Embedded at the data layer (pgvector) and served
-from the edge (Cloudflare Workers).
+demonstrates the work it describes: RAG over the resume and bio with streaming
+Claude Sonnet synthesis, persona-adaptive UX (planned). Embedded at the data
+layer (pgvector) and served from the edge (Cloudflare Workers).
 
 ---
 
@@ -52,7 +52,11 @@ from the edge (Cloudflare Workers).
   SSE-streaming route (Claude Sonnet synthesis with refusal short-circuit at
   score < 0.25) → `<ChatDrawer>` chat-style transcript with token-by-token
   streaming and source attribution chips. **First UI-visible AI feature.**
-- ⏳ **Slice 4.3** — Natural-language project filter
+- 🔁 **Slice 4.3** — Natural-language project filter: shipped + reverted. The
+  Haiku-classified, debounced UX worked end-to-end with live telemetry, but a
+  4-project corpus is too small to justify NL filtering over eyeballing the
+  grid. Multi-feature telemetry scaffolding (createCache factory + ProjectCard
+  extraction + `rag_queries.feature` CHECK enum) preserved for slice 4.4.
 - ⏳ **Slice 4.4** — Persona-adaptive hero (referrer + Claude Haiku)
 - ⏳ **Slice 4.5** — Inline code explainer
 - ⏳ **Slice 4.6** — Terminal easter egg
