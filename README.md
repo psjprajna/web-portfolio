@@ -1,9 +1,14 @@
 # Prajna Shetty — AI Portfolio
 
-A production AI portfolio for an Applied AI engineer (Dubai, UAE). The site itself
-demonstrates the work it describes: RAG over the resume and bio with streaming
-Claude Sonnet synthesis, persona-adaptive UX (planned). Embedded at the data
-layer (pgvector) and served from the edge (Cloudflare Workers).
+A production AI portfolio for an Applied AI engineer (Dubai, UAE). The site
+itself demonstrates the work it describes: a multi-stage RAG pipeline answers
+visitor questions about the resume, bio, and project READMEs with
+streaming Claude Sonnet synthesis. Embedded at the data layer (pgvector) and
+served from the edge (Cloudflare Workers).
+
+For a full technical deep-dive of every AI subsystem (query expansion, multi-query
+retrieval, anchor + dedup, prompt caching, refusal architecture, telemetry,
+failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_FEATURES.md)**.
 
 ---
 
@@ -35,31 +40,38 @@ layer (pgvector) and served from the edge (Cloudflare Workers).
 - **Phase 3** — Real content: 6 lineage entries with real entity logos,
   6-category Arsenal/Tech Stack, 4 curated projects, first-person bio
 
-### In progress — Phase 4 (AI features)
+### Phase 4 — AI features (complete)
 
 - ✅ **Slice 4.0** — RAG schema migration: `bio_chunks`, `resume_chunks`,
-  `rag_queries`, projects extended for resume-only entries
+  `rag_queries`, `project_chunks`, projects extended for resume-only entries
 - ✅ **Slice 4.1** — pgvector embedding pipeline (Voyage `voyage-3` via direct
   fetch, batched to respect free-tier 3 RPM)
-- ✅ **Slice 4.1b** — `bio_chunks` embedding (9 chunks: 3 about + 6 arsenal)
-- ✅ **Slice 4.1c** — `resume_chunks` embedding (6 chunks: 4 experience + 2 education)
-- ✅ **Slice 4.1-verify** — semantic retrieval probe; 9/10 hand-curated queries
-  return expected chunk in top-3
+- ✅ **Slice 4.1b/c + verify** — bio (10 chunks), resume (6 chunks), retrieval
+  probe (9/10 hand-curated queries return expected chunk in top-3)
 - ✅ **Task #18** — seed `projects` table from curated data (4 rows embedded
   via batched Voyage call)
-- ✅ **Slice 4.2** — RAG Q&A panel: `match_chunks` Postgres RPC (UNION over
-  bio ∪ resume ∪ projects, ranked by HNSW cosine distance) → `/api/ai/rag`
-  SSE-streaming route (Claude Sonnet synthesis with refusal short-circuit at
-  score < 0.25) → `<ChatDrawer>` chat-style transcript with token-by-token
-  streaming and source attribution chips. **First UI-visible AI feature.**
-- 🔁 **Slice 4.3** — Natural-language project filter: shipped + reverted. The
-  Haiku-classified, debounced UX worked end-to-end with live telemetry, but a
-  4-project corpus is too small to justify NL filtering over eyeballing the
-  grid. Multi-feature telemetry scaffolding (createCache factory + ProjectCard
-  extraction + `rag_queries.feature` CHECK enum) preserved for slice 4.4.
-- ⏳ **Slice 4.4** — Persona-adaptive hero (referrer + Claude Haiku)
-- ⏳ **Slice 4.5** — Inline code explainer
-- ⏳ **Slice 4.6** — Terminal easter egg
+- ✅ **Slice 4.2** — `<ChatDrawer>` end-to-end:
+  `match_chunks` Postgres RPC (UNION over bio ∪ resume ∪ projects ∪ project_readme,
+  HNSW cosine distance) → `/api/ai/rag` SSE-streaming route → token-by-token
+  streaming UI with source attribution chips
+- ✅ **Slice 4.2.x** — Project README chunking (corpus 19 → 47 chunks)
+- ✅ **Slice 4.2e** — Anthropic prompt caching + in-process answer LRU +
+  `cache_hit` telemetry — single Sonnet warm-replay measured at **1085× latency drop**
+- ✅ **Slice 4.2f/f.1/f.2/f.3** — Multi-query expansion via Haiku 4.5
+  (`expandQuery` + `matchChunksMulti`), `NO_REWRITE` sentinel for off-corpus
+  inputs, refusal-band rationale refresh
+- 🔁 **Slice 4.3** — Natural-language project filter: shipped + reverted
+  (4-project corpus too small to justify NL filtering over eyeballing the grid).
+  Net carryover: `createCache` factory, `ProjectCard` extraction,
+  `rag_queries.feature` CHECK enum.
+- ✅ **Slice 4.2g** — Chatbot quality pass: Profile-facts bio chunk +
+  AI-assistant voice + score-based refusal gate **removed**. The SYSTEM_PROMPT's
+  off-corpus refusal + anti-injection rules are now the sole refusal mechanism.
+  **Closes Phase 4.** See `docs/AI_FEATURES.md` for the full technical
+  deep-dive.
+- 🚫 **Slices 4.4 / 4.5 / 4.6** — Persona-adaptive hero, inline code explainer,
+  terminal easter egg. Retired Session 30 on a scope-discipline decision —
+  visitor-driven rather than demo-driven Phase 4 close.
 
 ### Planned
 
