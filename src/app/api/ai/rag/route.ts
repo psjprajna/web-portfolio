@@ -29,6 +29,10 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 type CacheHit = 'none' | 'prompt' | 'answer' | 'both'
 
+// Multi-query expansion can lift off-corpus inputs above this threshold — Haiku
+// rewrites unrelated inputs into corpus-relevant "Prajna" queries. Tuning this
+// value can't fix that; the expansion prompt has to refuse off-corpus rewrites.
+// Single-query fallback (F10) refuses noise correctly at ~0.20.
 const REFUSAL_THRESHOLD = 0.3
 const REFUSAL_EMPTY =
   "I can only answer from my resume, projects, and skills here. Try asking about my AI work, a specific project, or my timeline."
