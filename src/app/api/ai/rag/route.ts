@@ -3,22 +3,26 @@
  *
  * F1.  Voyage embed API 4xx/5xx/timeout → matchChunksMulti throws → JSON 500.
  * F2.  Empty retrieval (chunks.length === 0) → REFUSAL_EMPTY copy + telemetry refused=true.
- * F3.  Weak retrieval (top score < REFUSAL_THRESHOLD) → REFUSAL_LOW copy + telemetry refused=true.
- * F4.  Anthropic API timeout (>30s) — synthesize.ts wraps the stream with a setTimeout that
+ *      In practice this only triggers on Voyage all-null embeddings (rate-limit / network) —
+ *      a successful Voyage call always produces some non-zero cosine match. Score-based
+ *      refusal was removed (Slice 4.2g v2): ANCHOR_CHUNK + the SYSTEM_PROMPT's off-corpus
+ *      refusal + anti-injection rules handle low-score retrievals at the synthesis layer.
+ * F3.  Anthropic API timeout (>30s) — synthesize.ts wraps the stream with a setTimeout that
  *      calls stream.abort() at the wall-clock limit. The for-await loop throws and is caught
  *      by the stream's outer try, emitting an SSE `error` event.
- * F5.  Anthropic rate limit (429) → SDK throws inside the async generator → caught by the
+ * F4.  Anthropic rate limit (429) → SDK throws inside the async generator → caught by the
  *      stream's outer try, emits SSE `error` event, telemetry row still written from `finally`.
- * F6.  Cloudflare Worker CPU limit → worker killed; telemetry row never written; client sees
+ * F5.  Cloudflare Worker CPU limit → worker killed; telemetry row never written; client sees
  *      an aborted stream. No mitigation possible in-process.
- * F7.  Stream cancelled by client (drawer close → AbortController) → telemetry still fires
+ * F6.  Stream cancelled by client (drawer close → AbortController) → telemetry still fires
  *      from the stream's `finally`. SDK keeps streaming server-side (open Anthropic SDK
  *      carry-forward — `messages.stream` does not yet honor AbortSignal).
- * F8.  Prompt injection in visitor query → handled by the system prompt's anti-injection rule
- *      + the score-based refusal threshold as backstop.
- * F9.  History tampering (oversized text, invalid role, > 50 turns) → Zod schema rejects
+ * F7.  Prompt injection in visitor query → handled by the SYSTEM_PROMPT's anti-injection rule
+ *      + off-corpus refusal rule. No deterministic backstop downstream — the prompt is the
+ *      sole defense (§6 testing validated this at top=0.412).
+ * F8.  History tampering (oversized text, invalid role, > 50 turns) → Zod schema rejects
  *      before any retrieval / synthesis → 400 generic.
- * F10. Haiku expansion API fails (4xx/5xx/timeout) → expandQuery catches and returns
+ * F9.  Haiku expansion API fails (4xx/5xx/timeout) → expandQuery catches and returns
  *      [trimmed] alone → matchChunksMulti runs as a single-query retrieval. No degradation.
  */
 import { z } from 'zod'
@@ -29,18 +33,13 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 type CacheHit = 'none' | 'prompt' | 'answer' | 'both'
 
-// Refusal floor for the top retrieved chunk. Off-corpus noise lands at [0.17, 0.20]
-// after expansion-prompt hardening (sentinel-refusal and F10 single-query paths
-// both converge there). Legitimate corpus queries score well above 0.30 under
-// Haiku-up multi-query expansion. The [0.25, 0.30) band catches adversarial
-// inputs that brush corpus lexically — prompt injection, PII fishing, anaphoric
-// "tell me more" — so this constant is a fast deterministic backstop alongside
-// the system-prompt's anti-injection rules.
-const REFUSAL_THRESHOLD = 0.3
+// Single refusal copy — fires only when retrieval returns zero chunks (Voyage
+// all-null embeddings: rate-limit or network failure). All other retrieval
+// outcomes flow into Sonnet with ANCHOR_CHUNK + retrieved chunks; the
+// SYSTEM_PROMPT's off-corpus refusal + anti-injection rules handle anything
+// retrieval can't ground.
 const REFUSAL_EMPTY =
-  "I can only answer from my resume, projects, and skills here. Try asking about my AI work, a specific project, or my timeline."
-const REFUSAL_LOW =
-  "I don't have enough grounded context to answer that confidently. Try rephrasing, or ask about a specific project, role, or skill of mine."
+  "I can't reach Prajna's portfolio search right now — please try again in a moment, or ask about a specific project, role, or skill."
 const MODEL_NAME = 'claude-sonnet-4-6'
 const TOP_K = 5
 const PER_QUERY_TOP_K = 3
@@ -163,14 +162,8 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const topScore = chunks[0]?.score ?? null
-  const refusalReason: 'empty' | 'low' | null =
-    chunks.length === 0
-      ? 'empty'
-      : topScore !== null && topScore < REFUSAL_THRESHOLD
-        ? 'low'
-        : null
-  const shouldRefuse = refusalReason !== null
-  const refusalCopy = refusalReason === 'empty' ? REFUSAL_EMPTY : REFUSAL_LOW
+  const shouldRefuse = chunks.length === 0
+  const refusalCopy = REFUSAL_EMPTY
   const sources = chunks.map((c) => ({
     source: c.source,
     title: c.title,

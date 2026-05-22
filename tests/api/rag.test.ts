@@ -139,7 +139,7 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
-  it('streams REFUSAL_EMPTY copy (mentions resume/projects/skills) when matchChunksMulti returns no chunks', async () => {
+  it('streams REFUSAL_EMPTY copy (Voyage-failure path) when matchChunksMulti returns no chunks', async () => {
     vi.mocked(matchChunksMulti).mockResolvedValue([])
     const { insert } = mockInsertChain()
 
@@ -148,7 +148,7 @@ describe('POST /api/ai/rag', () => {
     expect(res.status).toBe(200)
     const { tokens, meta, done } = await parseSseBody(res)
     expect(tokens).toHaveLength(1)
-    expect(tokens[0]).toMatch(/resume.*projects.*skills/i)
+    expect(tokens[0]).toMatch(/portfolio.*try again/i)
     expect(meta).toMatchObject({ type: 'meta', refused: true, sources: [] })
     expect(done).toBe(true)
     expect(synthesize).not.toHaveBeenCalled()
@@ -156,35 +156,35 @@ describe('POST /api/ai/rag', () => {
       expect.objectContaining({
         query: 'random nonsense query that matches nothing',
         refused: true,
-        response: expect.stringMatching(/resume.*projects.*skills/i),
+        response: expect.stringMatching(/portfolio.*try again/i),
         retrieved_ids: [],
         relevance_top_score: null,
       })
     )
   })
 
-  it('streams REFUSAL_LOW copy (mentions grounded context / rephrase) when top score is below threshold (0.30)', async () => {
+  it('does NOT refuse on low-score retrieval; passes chunks to synthesize (Slice 4.2g v2 — score gate removed)', async () => {
     const chunks: MatchedChunk[] = [
-      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.28 },
+      { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.18 },
     ]
     vi.mocked(matchChunksMulti).mockResolvedValue(chunks)
+    vi.mocked(synthesize).mockImplementation(() => yieldTokens(['answer.']))
     const { insert } = mockInsertChain()
 
-    const res = await POST(makeRequest({ query: 'fictional query about cats and dogs' }))
+    const res = await POST(makeRequest({ query: 'edge-case query that produces a weak top match' }))
 
     expect(res.status).toBe(200)
     const { tokens, meta, done } = await parseSseBody(res)
-    expect(tokens).toHaveLength(1)
-    expect(tokens[0]).toMatch(/grounded context|rephrase/i)
-    expect(meta).toMatchObject({ type: 'meta', refused: true })
+    expect(tokens).toEqual(['answer.'])
+    expect(meta).toMatchObject({ type: 'meta', refused: false })
     expect(done).toBe(true)
-    expect(synthesize).not.toHaveBeenCalled()
+    expect(synthesize).toHaveBeenCalledTimes(1)
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        refused: true,
+        refused: false,
         retrieved_ids: ['b1'],
-        relevance_top_score: 0.28,
-        response: expect.stringMatching(/grounded context|rephrase/i),
+        relevance_top_score: 0.18,
+        response: 'answer.',
       })
     )
   })
