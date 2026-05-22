@@ -2,5 +2,32 @@
   "Navbar": {
     "about": "عن",
     "projects": "المشاريع"
+  },
+  "Hero": {
+    "locationPill": "دبي، الإمارات",
+    "availability": "متاحة للعمل",
+    "tagline": "مهندسة ذكاء اصطناعي وتعلم آلي تبني <phrase>أنظمة حقيقية</phrase> للإنتاج — أكثر من ٣ سنوات في الذكاء الاصطناعي الفيدرالي الأمريكي (NHTSA) وتدريب نماذج OpenAI الرائدة في Scale AI.",
+    "ctaPrimary": "اطّلع على أعمالي →",
+    "ctaSecondary": "اسألني أي شيء ✦",
+    "lookingFor": "أبحث عن دوري التالي في هندسة الذكاء الاصطناعي.",
+    "scrollHint": "مرّر",
+    "scrollAria": "مرّر إلى قسم عني"
+  },
+  "Footer": {
+    "location": "دبي، الإمارات"
+  },
+  "Social": {
+    "linkedinAria": "LinkedIn",
+    "githubAria": "GitHub",
+    "emailAria": "البريد الإلكتروني — انقر لنسخ العنوان",
+    "copyToast": "تم نسخ البريد ✓"
+  },
+  "ChatFAB": {
+    "openChatAria": "افتح الدردشة"
+  },
+  "MobileMenu": {
+    "home": "الرئيسية",
+    "openAria": "افتح القائمة",
+    "closeAria": "أغلق القائمة"
   }
 }

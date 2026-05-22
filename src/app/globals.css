@@ -1518,3 +1518,51 @@ html.dark-mode .copy-toast {
 @media (prefers-reduced-motion: reduce) {
   .copy-toast { animation: none; }
 }
+
+/* ===== Partial RTL chrome mirroring — Session 34 user request =====
+   Mirrors the four hero chrome surfaces the user explicitly asked to anchor on
+   physical-left when dir="rtl": location pill (.hero-top → eyebrow + availability)
+   and the looking-for-role tagline + social icons block (.hero-soc-block).
+   Additive only — no LTR rule modified. Full RTL CSS pass remains Slice 5.5a.
+
+   Key facts that shape the rules below:
+   - `right: 48px` is physical, never auto-flips. Must explicitly pair `right: auto`
+     with the new `left` value to defeat the cascade.
+   - `text-align: right` is also physical. Need explicit `text-align: left` for RTL.
+   - Flexbox `align-items` / `justify-content` (flex-start / flex-end) DO auto-flip
+     in RTL — so we don't override `.hero-soc-block { align-items: flex-end }` on
+     desktop (it already maps to physical-left in RTL). On mobile the rule becomes
+     `align-items: flex-start`, which in RTL would push to physical-right — so a
+     mobile-specific RTL override flips it to flex-end. */
+html[dir="rtl"] .hero-top {
+  right: auto;
+  left: 48px;
+  text-align: left;
+}
+html[dir="rtl"] .hero-soc-block {
+  right: auto;
+  left: 48px;
+}
+/* H1 carries dir="ltr" (bidi correctness for the Latin name's trailing period).
+   On /ar we still want the block flush against the document's natural start edge
+   = physical right. text-align is independent of the element's own dir, so this
+   right-aligns the LTR run as a whole while keeping "Prajna Shetty." typeset
+   correctly internally. */
+html[dir="rtl"] .hero-name {
+  text-align: right;
+}
+
+@media (max-width: 1199px), (max-height: 879px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 32px; }
+  html[dir="rtl"] .hero-soc-block { right: auto; left: 32px; }
+}
+
+@media (max-width: 767px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 20px; text-align: left; }
+  html[dir="rtl"] .hero-soc-block { align-items: flex-end; }
+}
+
+@media (min-width: 1440px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 80px; }
+  html[dir="rtl"] .hero-soc-block { right: auto; left: 80px; }
+}

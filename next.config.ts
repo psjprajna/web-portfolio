@@ -5,6 +5,15 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['192.168.1.97'],
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/en',
+        permanent: false,
+      },
+    ]
+  },
 }
 
 export default withNextIntl(nextConfig)
