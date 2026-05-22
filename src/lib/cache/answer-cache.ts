@@ -89,10 +89,6 @@ export function buildKey(query: string, lastUserTurn?: string): string {
 // RAG cache (Slice 4.2e). 5-min TTL matches Anthropic prompt-cache TTL.
 export const ragCache = createCache({ maxEntries: 50, ttlMs: 5 * 60 * 1000 })
 
-// Filter cache (Slice 4.3). Smaller because the keyspace is naturally narrow —
-// visitors type short filter phrases like "rag", "azure", "python" repeatedly.
-export const filterCache = createCache({ maxEntries: 20, ttlMs: 5 * 60 * 1000 })
-
 // Backward-compat shim. The existing /api/ai/rag route + rag.test.ts mocks
 // import { buildKey, get, set } as named exports from this module (the pre-
 // factory shape). Keeping these re-exports means the refactor is fully

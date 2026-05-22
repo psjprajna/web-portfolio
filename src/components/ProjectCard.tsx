@@ -1,20 +1,13 @@
 'use client'
 import type { Project, ProjectStatus } from '@/lib/data/projects'
 
-// Extracted from Projects.tsx (Slice 4.3). Marked 'use client' so it can be
-// composed by the ProjectsFilterShell client component as well as by the
-// Server Component shell in Projects.tsx (Next 16 allows RSC → client import).
-// The only behavioral addition is the optional `isHidden` prop, which the
-// filter shell toggles to animate non-matching cards via .card.filter-hidden.
 interface Props {
   project: Project
-  isHidden?: boolean
 }
 
-export function ProjectCard({ project, isHidden = false }: Props) {
-  const cardClass = `card${isHidden ? ' filter-hidden' : ''}`
+export function ProjectCard({ project }: Props) {
   return (
-    <article className={cardClass} aria-hidden={isHidden || undefined}>
+    <article className="card">
       <div className="card-header">
         <div className="card-status">
           <StatusIndicator status={project.status} />

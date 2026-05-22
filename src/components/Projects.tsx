@@ -1,5 +1,5 @@
 import { PROJECTS } from '@/lib/data/projects'
-import { ProjectsFilterShell } from './ProjectsFilterShell'
+import { ProjectCard } from './ProjectCard'
 
 export function Projects() {
   return (
@@ -15,7 +15,11 @@ export function Projects() {
         </div>
       </section>
 
-      <ProjectsFilterShell projects={PROJECTS} />
+      <div className="projects-grid">
+        {PROJECTS.map((project) => (
+          <ProjectCard key={project.num} project={project} />
+        ))}
+      </div>
     </section>
   )
 }
