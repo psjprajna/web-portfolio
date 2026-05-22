@@ -29,10 +29,13 @@ import { createSupabaseServiceClient } from '@/lib/supabase/service'
 
 type CacheHit = 'none' | 'prompt' | 'answer' | 'both'
 
-// Multi-query expansion can lift off-corpus inputs above this threshold — Haiku
-// rewrites unrelated inputs into corpus-relevant "Prajna" queries. Tuning this
-// value can't fix that; the expansion prompt has to refuse off-corpus rewrites.
-// Single-query fallback (F10) refuses noise correctly at ~0.20.
+// Refusal floor for the top retrieved chunk. Off-corpus noise lands at [0.17, 0.20]
+// after expansion-prompt hardening (sentinel-refusal and F10 single-query paths
+// both converge there). Legitimate corpus queries score well above 0.30 under
+// Haiku-up multi-query expansion. The [0.25, 0.30) band catches adversarial
+// inputs that brush corpus lexically — prompt injection, PII fishing, anaphoric
+// "tell me more" — so this constant is a fast deterministic backstop alongside
+// the system-prompt's anti-injection rules.
 const REFUSAL_THRESHOLD = 0.3
 const REFUSAL_EMPTY =
   "I can only answer from my resume, projects, and skills here. Try asking about my AI work, a specific project, or my timeline."
