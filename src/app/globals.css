@@ -860,13 +860,17 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .meta-item-label { font-family: var(--sans); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 3px; }
 .meta-item-value { font-family: var(--sans); font-size: 12.5px; color: var(--ink); }
 .meta-item-value.accent { color: var(--gold); font-weight: 600; }
-/* Card 02's "Fine-Tuning / AraBERT + LoRA" wraps to 2 lines at desktop widths
-   while cards 01/03/04's architecture strings fit on 1 line. Without this
-   clamp, .card-meta heights differ across the row, .card-spacer absorption
-   becomes non-uniform, and the thumb + border-top divider drift vertically
-   between cards. Reserving worst-case 2-line height for every meta-item-value
-   locks the row baseline in both /en and /ar. */
-.card-meta-grid .meta-item-value { min-height: 2.6em; }
+/* Scoped to the 4-column projects grid (≥1200px) where cards live in one row
+   and need to baseline-align. Cards 02/03/04's `metaArchitecture.value` strings
+   wrap to 2 lines at these widths; card 01's "RAG / Azure AI Search" stays
+   1-line at 1920w. Reserving worst-case 2-line height (3em = 2 × browser-default
+   line-height 1.5 at 12.5px font) keeps .card-meta heights equal across the row
+   → 1fr spacer absorbs uniformly → thumb and border-top divider baseline-align.
+   At <1200px the cards stack in 2-col or 1-col layouts where row baseline is
+   irrelevant; no clamp there to avoid artificial whitespace. */
+@media (min-width: 1200px) {
+  .card-meta-grid .meta-item-value { min-height: 3em; }
+}
 
 .card-actions { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
 
