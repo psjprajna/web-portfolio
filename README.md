@@ -77,32 +77,57 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
 
 ### Phase 5 — Bilingual EN/AR (in progress)
 
-- ✅ **Slice 5.4a** — i18n scaffold + LangToggle wired (next-intl 4 routing,
-  `[locale]` segment, EN/AR `<html lang dir>` swap, Noto Sans Arabic loaded)
-- ✅ **Slice 5.4b** — UI chrome translation (Hero/Footer/Social/ChatFAB/Mobile
-  menu translated; partial Hero RTL anchoring; production locale-rendering fix:
-  `setRequestLocale` in every layout+page, static-import message map)
-- ✅ **Slice 5.4c** — Section content + data-file translation: About bio +
-  Lineage timeline entries (roles, locations, dates, bullets) + Arsenal section
-  chrome + Arsenal skill cards (eyebrows + titles; keywords stay Latin as
-  technical proper nouns) + Projects content (descriptions, statuses, meta
-  labels & values) + ProjectCard buttons + Footer name ("Prajna Shetty" →
-  "براجنا شيتي") translated. RTL CSS pass on relevant chrome: bio quote accent
-  bar mirrors to physical-right; lineage timeline spine fully mirrors (logo on
-  physical-left of spine, text on physical-right); detail card repositions to
-  physical-left with spine buffer; "Select an entry" chevron flips; ChatFAB
-  anchors at bottom-left for inline-end visual symmetry with hero pills + social
-  icons. React 19 script-tag warning fixed by moving the pre-paint theme
-  initializer to `public/prepaint-theme.js` and referencing via `<script src>`.
-  Proper nouns (Scale AI, MITRE, project titles, technical libraries) stay
-  Latin in all locales. Arabic prose is machine-authored and flagged for
-  pre-launch native review via `_review` keys in `ar.json` + comments in
-  `journey.ts` / `projects.ts` / `skills.ts`.
-- [ ] **Slice 5.4d** — ChatDrawer welcome shell + multilingual RAG (SYSTEM_PROMPT
-  §8 LANGUAGE RULE, Arabic REFUSAL_EMPTY)
-- [ ] **Slice 5.5a/b** — Remaining RTL CSS (ChatDrawer slide direction, theme
-  toggle ball, projects card actions reversal) + 9-breakpoint audit
-- 🚫 **Slices 5.1–5.3** — MDX blog deferred indefinitely (Session 32 user decision)
+- ✅ **Slice 5.4a** — I wired up the i18n scaffold and the LangToggle pill:
+  next-intl 4 routing, `[locale]` segment under the App Router, the EN/AR
+  `<html lang dir>` swap, and the Noto Sans Arabic font load. Two-key proof
+  via the navbar to validate the end-to-end pipeline before scaling translation
+  surface.
+- ✅ **Slice 5.4b** — I translated the UI chrome — Hero, Footer, Social icons,
+  ChatFAB, mobile menu — and added partial Hero RTL anchoring (location pill +
+  availability pill + social block + name H1) at four breakpoints. Shipped this
+  alongside a production locale-rendering fix that took three coupled changes:
+  `setRequestLocale` in every layout AND every page (the layout's wasn't enough
+  under static rendering), a static-imports + map object in `request.ts` (the
+  bundler couldn't statically analyze my template-literal dynamic import and
+  silently dropped `ar.json` from the worker bundle), and an explicit `{ locale,
+  messages }` prop on `<NextIntlClientProvider>`. Without those, `/ar` and
+  `/en` served byte-identical English content despite correct `<html dir>`
+  attrs.
+- ✅ **Slice 5.4c** — I pushed the full section + data-file translation in one
+  slice: About bio, Lineage timeline entries (roles, locations, dates, bullets),
+  Arsenal section chrome + skill cards (eyebrows + titles; keywords stay Latin
+  as technical proper nouns), Projects content (descriptions, statuses, meta
+  labels & values), ProjectCard buttons, and the Footer name ("Prajna Shetty"
+  → "براجنا شيتي"). For the RTL layout, I mirrored the bio quote accent bar to
+  physical-right, fully mirrored the lineage timeline spine (logos on
+  physical-left of the spine, text on physical-right), repositioned the detail
+  card to physical-left with a spine-side buffer (`margin-right` swap because
+  `margin-left` was the LTR buffer side), flipped the "Select an entry"
+  chevron, and anchored the ChatFAB at bottom-left for inline-end visual
+  symmetry with the hero pills and social icons. The React 19 script-tag
+  warning that fired on every locale toggle is gone too — I moved the
+  pre-paint theme initializer to `public/prepaint-theme.js` and reference it
+  via `<script src>` (React 19 only warns about inline scripts with `children`
+  / `dangerouslySetInnerHTML`; `<script src>` is exempt). Proper nouns (Scale
+  AI, MITRE, project titles, technical libraries) stay Latin in all locales.
+  The Arabic prose is machine-authored best-effort; I've flagged the strings
+  via `_review` keys in `ar.json` and inline comments in `journey.ts` /
+  `projects.ts` / `skills.ts` so a native reviewer can refine before launch.
+- [ ] **Slice 5.4d** — Next up: I'm translating the ChatDrawer welcome shell
+  and making the RAG pipeline multilingual — adding a §8 LANGUAGE RULE to my
+  SYSTEM_PROMPT so Claude follows the visitor's language across turns, an
+  Arabic REFUSAL_EMPTY constant, and an Arabic-input expansion test through
+  the Haiku rewrite phase. The Voyage `voyage-3` embedding model is already
+  multilingual, so retrieval support is free.
+- [ ] **Slice 5.5a/b** — Then I'm closing out the remaining RTL CSS pass —
+  ChatDrawer slide direction, theme toggle ball, projects card actions
+  reversal, and the full lineage timeline mirror — followed by a 9-breakpoint
+  audit and a detail-card geometry invariant probe under `/ar` to make sure
+  the LTR clearance math holds in the mirrored layout.
+- 🟡 **Slices 5.1–5.3 (MDX blog)** — Deferred for now. I'm prioritizing the
+  bilingual surface to unblock the Arabic-speaking part of my UAE hiring
+  audience first; the blog work resumes once Phase 5's i18n surface fully
+  lands.
 
 ### Planned
 
