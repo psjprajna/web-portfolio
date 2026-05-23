@@ -1,10 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 const TABLET_MIN_PX = 768
 
 export function MobileNavMenu() {
+  const tMenu = useTranslations('MobileMenu')
+  const tNav = useTranslations('Navbar')
   const [open, setOpen] = useState(false)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -47,7 +50,7 @@ export function MobileNavMenu() {
         type="button"
         className={`nav-hamburger${open ? ' open' : ''}`}
         onClick={toggle}
-        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-label={open ? tMenu('closeAria') : tMenu('openAria')}
         aria-expanded={open}
       >
         <span />
@@ -62,17 +65,17 @@ export function MobileNavMenu() {
         <ul>
           <li>
             <a href="#hero" onClick={close}>
-              Home
+              {tMenu('home')}
             </a>
           </li>
           <li>
             <a href="#about" onClick={close}>
-              About
+              {tNav('about')}
             </a>
           </li>
           <li>
             <a href="#projects" onClick={close}>
-              Projects
+              {tNav('projects')}
             </a>
           </li>
         </ul>

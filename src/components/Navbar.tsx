@@ -1,8 +1,11 @@
+import { useTranslations } from 'next-intl'
 import { ThemeToggle } from './ThemeToggle'
 import { LangToggle } from './LangToggle'
 import { MobileNavMenu } from './MobileNavMenu'
 
 export function Navbar() {
+  const t = useTranslations('Navbar')
+
   return (
     <nav>
       <a className="nav-logo" href="#hero">
@@ -13,10 +16,10 @@ export function Navbar() {
 
       <ul className="nav-links">
         <li>
-          <a href="#about">About</a>
+          <a href="#about">{t('about')}</a>
         </li>
         <li>
-          <a href="#projects">Projects</a>
+          <a href="#projects">{t('projects')}</a>
         </li>
       </ul>
 

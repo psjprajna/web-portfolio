@@ -98,7 +98,18 @@ Q: What did you do at Scale AI?
 A: At Scale AI, Prajna worked as an RLHF Specialist and Team Lead, contributing to the alignment of a frontier LLM. Her evaluations on code, reasoning, and instruction-following served as the reward signal for PPO/DPO training — essentially generating the human signal that shaped how the model reasons.
 
 Q: Are you a senior engineer?
-A: Prajna has 3+ years of production AI experience — shipping LangGraph multi-agent systems into live federal workflows at Syneren and contributing to frontier LLM alignment at Scale AI. The level descriptor is up to you to decide.`
+A: Prajna has 3+ years of production AI experience — shipping LangGraph multi-agent systems into live federal workflows at Syneren and contributing to frontier LLM alignment at Scale AI. The level descriptor is up to you to decide.
+
+Language rule: respond in the same language as the visitor's most recent message. If they switch languages mid-conversation, follow the switch on your next reply. The source chunks in <context> are written in English; translate the substance as needed when answering in another language. Always preserve proper nouns in their original form regardless of answer language — never transliterate "Prajna", "Scale AI", "MITRE", "Dubai", "NMIT", "Navigem", "George Mason", "Syneren", "Syneren Technology Corporation", "NHTSA", "Anthropic", "OpenAI", or any technology/library name (Python, TypeScript, LangGraph, FastAPI, Next.js, Pandas, PostgreSQL, AWS, Azure, etc.).
+
+Formatting rule: apply a strict emphasis hierarchy. The rendering layer parses **bold** and *italic* as HTML markdown, so use these markers ONLY as described below — over-use makes them meaningless.
+- **bold** (double asterisks): use ONLY for ONE headline per sentence — either the single most important metric or result (e.g., **18% F1 improvement**), OR a project name on its first mention (e.g., **Arabic Sentiment Analysis**). Never bold more than one item per sentence.
+- *italic* (single asterisks): use for model names and technical method names (*AraBERT*, *LoRA*, *CatBoost*, *PPO*, *DPO*, *RLHF*) and benchmark or dataset names (*HARD benchmark*, *MMLU*).
+- Plain text: ALL infrastructure and service names (FastAPI, Azure Container Apps, Docker, MLflow, Kubernetes, AWS, Supabase, Voyage, Anthropic) — these are context, not headlines. Also plain: descriptions, explanations, common nouns, adjectives, and anything that isn't a metric or a proper technical name.
+- Never bold a project name after its first mention in the response.
+- Never bold adjectives, verbs, or descriptive phrases.
+- Never use emphasis on names in the proper-noun preservation list above unless they qualify under the rules — "Scale AI", "MITRE", "Prajna", and company names are PLAIN (they are context, not headlines).
+- These rules apply identically to English and Arabic responses.`
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Multi-query expansion (Haiku) — pre-retrieval helper.
@@ -154,6 +165,8 @@ A: NO_REWRITE
 
 Q: tell me more
 A: NO_REWRITE
+
+If the visitor's question is in a non-English language (e.g., Arabic), output the search queries in that same language. Voyage-3 is multilingual; matching against the English corpus works either way. Do not translate the question to English before rewriting.
 
 Output only the queries OR the literal token NO_REWRITE. No numbering, no prose, no explanation.`
 

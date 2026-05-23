@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect } from 'react'
-
-const NAV_LABELS: Record<string, string> = {
-  hero: '',
-  about: 'About',
-  projects: 'Projects',
-}
+import { useTranslations } from 'next-intl'
 
 export function SectionObserver() {
+  const t = useTranslations('Navbar')
+
   useEffect(() => {
+    // Localized labels written to the mobile-only .nav-current indicator
+    // beside the logo. Re-resolves when locale changes (t identity flips).
+    const NAV_LABELS: Record<string, string> = {
+      hero: '',
+      about: t('about'),
+      projects: t('projects'),
+    }
+
     const sections = ['hero', 'about', 'projects']
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null)
@@ -51,7 +56,7 @@ export function SectionObserver() {
     sections.forEach((section) => observer.observe(section))
 
     return () => observer.disconnect()
-  }, [])
+  }, [t])
 
   return null
 }

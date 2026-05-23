@@ -163,6 +163,46 @@ describe('POST /api/ai/rag', () => {
     )
   })
 
+  it('streams Arabic REFUSAL_EMPTY when query is Arabic and retrieval returns no chunks (Slice 5.4d)', async () => {
+    vi.mocked(matchChunksMulti).mockResolvedValue([])
+    const { insert } = mockInsertChain()
+
+    const arabicQuery = 'ما الذي فعلته في Scale AI؟'
+    const res = await POST(makeRequest({ query: arabicQuery }))
+
+    expect(res.status).toBe(200)
+    const { tokens, meta, done } = await parseSseBody(res)
+    expect(tokens).toHaveLength(1)
+    // Arabic refusal copy starts with "لا يمكنني الوصول" ("I can't reach...")
+    expect(tokens[0]).toMatch(/لا يمكنني الوصول/)
+    // English refusal substring MUST NOT be present (regression guard against language leak)
+    expect(tokens[0]).not.toMatch(/portfolio.*try again/i)
+    expect(meta).toMatchObject({ type: 'meta', refused: true, sources: [] })
+    expect(done).toBe(true)
+    expect(synthesize).not.toHaveBeenCalled()
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: arabicQuery,
+        refused: true,
+        response: expect.stringMatching(/لا يمكنني الوصول/),
+      })
+    )
+  })
+
+  it('English query on empty retrieval still emits English REFUSAL_EMPTY (regression coverage for byte-identical English path)', async () => {
+    vi.mocked(matchChunksMulti).mockResolvedValue([])
+    mockInsertChain()
+
+    const res = await POST(makeRequest({ query: 'plain english query with zero matches' }))
+
+    expect(res.status).toBe(200)
+    const { tokens } = await parseSseBody(res)
+    // English refusal copy MUST be the exact one from before Slice 5.4d
+    expect(tokens[0]).toBe(
+      "I can't reach Prajna's portfolio search right now — please try again in a moment, or ask about a specific project, role, or skill."
+    )
+  })
+
   it('does NOT refuse on low-score retrieval; passes chunks to synthesize (Slice 4.2g v2 — score gate removed)', async () => {
     const chunks: MatchedChunk[] = [
       { source: 'bio', chunkId: 'b1', title: 'About', content: 'x', score: 0.18 },

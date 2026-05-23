@@ -1,0 +1,1 @@
+(function(){try{var v=localStorage.getItem('ps-theme');if(v==='dark'){document.documentElement.classList.add('dark-mode');}if(v){document.cookie='ps-theme='+v+';max-age=31536000;path=/;samesite=lax';}}catch{}})();

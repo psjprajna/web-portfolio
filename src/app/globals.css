@@ -799,7 +799,16 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 
 .card {
   position: relative;
-  display: flex; flex-direction: column;
+  /* Grid layout (replaces flex column) anchors the thumb at a structural row
+     position rather than relying on .card-spacer flex absorption. With 6 children
+     and 6 explicit rows (header, title, desc, 1fr spacer, thumb, meta) the thumb
+     row is positioned by the 1fr spacer absorbing all variance above it; title
+     and desc wrap freely without affecting thumb Y. Pairs with the
+     .card-meta-grid .meta-item-value clamp below to equalize meta-row heights so
+     the thumb baseline aligns across all 4 cards in the row. Session 16 lesson
+     applied: prefer grid for hard structural anchoring over flex+margin-auto. */
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto auto;
   height: 100%;
   background: var(--warm-white);
   border-radius: 16px;
@@ -851,6 +860,17 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .meta-item-label { font-family: var(--sans); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 3px; }
 .meta-item-value { font-family: var(--sans); font-size: 12.5px; color: var(--ink); }
 .meta-item-value.accent { color: var(--gold); font-weight: 600; }
+/* Scoped to the 4-column projects grid (≥1200px) where cards live in one row
+   and need to baseline-align. Cards 02/03/04's `metaArchitecture.value` strings
+   wrap to 2 lines at these widths; card 01's "RAG / Azure AI Search" stays
+   1-line at 1920w. Reserving worst-case 2-line height (3em = 2 × browser-default
+   line-height 1.5 at 12.5px font) keeps .card-meta heights equal across the row
+   → 1fr spacer absorbs uniformly → thumb and border-top divider baseline-align.
+   At <1200px the cards stack in 2-col or 1-col layouts where row baseline is
+   irrelevant; no clamp there to avoid artificial whitespace. */
+@media (min-width: 1200px) {
+  .card-meta-grid .meta-item-value { min-height: 3em; }
+}
 
 .card-actions { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
 
@@ -1194,6 +1214,23 @@ body.chat-open .chat-drawer { transform: translateX(0); }
   border-bottom-left-radius: 6px;
   max-width: 100%;
 }
+/* react-markdown renders **bold** → <strong>, *italic* → <em>, prose → <p>.
+   Weight 600 (not 700) keeps bold confident without re-introducing the
+   "shouty" effect we got from Sonnet's pre-edit over-bolding. */
+.chat-msg-ai strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.chat-msg-ai em {
+  font-style: italic;
+  color: var(--ink);
+}
+.chat-msg-ai p {
+  margin: 0;
+}
+.chat-msg-ai p + p {
+  margin-top: 0.6em;
+}
 .chat-msg-refused {
   color: var(--ink);
   background: rgba(200, 148, 26, 0.08);
@@ -1518,3 +1555,193 @@ html.dark-mode .copy-toast {
 @media (prefers-reduced-motion: reduce) {
   .copy-toast { animation: none; }
 }
+
+/* ===== Partial RTL chrome mirroring — Session 34 user request =====
+   Mirrors the four hero chrome surfaces the user explicitly asked to anchor on
+   physical-left when dir="rtl": location pill (.hero-top → eyebrow + availability)
+   and the looking-for-role tagline + social icons block (.hero-soc-block).
+   Additive only — no LTR rule modified. Full RTL CSS pass remains Slice 5.5a.
+
+   Key facts that shape the rules below:
+   - `right: 48px` is physical, never auto-flips. Must explicitly pair `right: auto`
+     with the new `left` value to defeat the cascade.
+   - `text-align: right` is also physical. Need explicit `text-align: left` for RTL.
+   - Flexbox `align-items` / `justify-content` (flex-start / flex-end) DO auto-flip
+     in RTL — so we don't override `.hero-soc-block { align-items: flex-end }` on
+     desktop (it already maps to physical-left in RTL). On mobile the rule becomes
+     `align-items: flex-start`, which in RTL would push to physical-right — so a
+     mobile-specific RTL override flips it to flex-end. */
+html[dir="rtl"] .hero-top {
+  right: auto;
+  left: 48px;
+  text-align: left;
+}
+html[dir="rtl"] .hero-soc-block {
+  right: auto;
+  left: 48px;
+}
+/* H1 carries dir="ltr" (bidi correctness for the Latin name's trailing period).
+   On /ar we still want the block flush against the document's natural start edge
+   = physical right. text-align is independent of the element's own dir, so this
+   right-aligns the LTR run as a whole while keeping "Prajna Shetty." typeset
+   correctly internally. */
+html[dir="rtl"] .hero-name {
+  text-align: right;
+}
+
+@media (max-width: 1199px), (max-height: 879px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 32px; }
+  html[dir="rtl"] .hero-soc-block { right: auto; left: 32px; }
+}
+
+@media (max-width: 767px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 20px; text-align: left; }
+  html[dir="rtl"] .hero-soc-block { align-items: flex-end; }
+}
+
+@media (min-width: 1440px) {
+  html[dir="rtl"] .hero-top { right: auto; left: 80px; }
+  html[dir="rtl"] .hero-soc-block { right: auto; left: 80px; }
+}
+
+/* Slice 5.4c originally moved ChatFAB to physical-LEFT on /ar for symmetry with
+   the hero chrome anchored on physical-left under RTL. Reverted Session 36 per
+   user direction: FAB stays bottom-right under both locales — the discoverable
+   "ask me anything" affordance reads better at the bottom-right edge regardless
+   of locale, since users worldwide expect chat triggers there. */
+
+/* ===== Partial RTL: bio quote accent bar — Session 35 user request =====
+   The bio blockquote uses a left-edge gold accent bar (border-left + padding-left).
+   Both are physical properties and don't auto-flip with dir. On /ar the bar must
+   sit on the RIGHT edge to match Arabic reading flow (gold bar precedes Arabic
+   text from its inline-start = physical-right). Additive override. */
+html[dir="rtl"] .bio-quote {
+  border-left: 0;
+  padding-left: 0;
+  border-right: 3px solid var(--gold);
+  padding-right: 16px;
+}
+
+/* ===== Partial RTL: lineage hint chevron flip — Session 35 user request =====
+   The "Select an entry to read more" hint includes a right-pointing chevron SVG.
+   In RTL inline flow that chevron lands at inline-start (= physical right) and
+   still points right — visually pointing AWAY from the Arabic text. Mirroring
+   the path with scaleX(-1) makes it point at the text, restoring the LTR
+   semantic where the chevron directs gaze toward the read-more affordance.
+   Additive only. Full lineage RTL pass remains Slice 5.5b. */
+html[dir="rtl"] .lineage-hint-icon svg {
+  transform: scaleX(-1);
+}
+
+/* ===== Partial RTL: lineage timeline FULL mirror — Session 35 user request =====
+   Mirrors the alternating-spine layout: side-LEFT entries (data file) display on
+   the physical-RIGHT of the spine in /ar; side-RIGHT entries on physical-LEFT.
+   Logos sit adjacent to the spine, text aligns toward the spine, mirroring the
+   LTR semantics in inverted physical space.
+
+   Most flex properties auto-flip correctly under dir=rtl (justify-content,
+   align-items on column-flex, flex-direction reverses physical direction) — so
+   only the physical-direction-locked properties need overrides:
+     - padding-right / padding-left (swap which side the content area squeezes from)
+     - text-align: left / right (swap toward spine)
+
+   Spine geometry itself (.tl-list::before at left: 50%) is direction-invariant.
+
+   Desktop-only scope: tablet/mobile use a single-rail layout under
+   @media (max-width: 1199px), (max-height: 879px). Higher-specificity dir-scoped
+   selectors would override those mobile rules; the desktop-only @media here
+   pins the fix to the alternating-spine viewport range. Mobile RTL audit
+   remains part of Slice 5.5b's 9-breakpoint pass. */
+@media (min-width: 1200px) and (min-height: 880px) {
+  html[dir="rtl"] .tl-entry.side-left  {
+    padding-right: 0;
+    padding-left: calc(50% + 18px);
+  }
+  html[dir="rtl"] .tl-entry.side-right {
+    padding-left: 0;
+    padding-right: calc(50% + 18px);
+  }
+  html[dir="rtl"] .tl-entry.side-left  .tl-text { text-align: left; }
+  html[dir="rtl"] .tl-entry.side-right .tl-text { text-align: right; }
+
+  /* Detail card on /ar lives in the physical-LEFT 1fr track (grid-column: 3
+     auto-flips with writing direction). justify-self: start sticks it to that
+     track's physical-RIGHT edge, which is adjacent to the spine column. The
+     LTR margin-left clamp buffers the SPINE-adjacent side in LTR (where the
+     card is in the physical-right column with its physical-left edge facing
+     the spine). In RTL the spine-adjacent side is physical-RIGHT, so the
+     buffer needs to move to margin-right. Without this the card hugs the
+     spine column with zero clearance. */
+  html[dir="rtl"] .detail-card {
+    margin-left: 0;
+    margin-right: clamp(72px, 6.4vw, 120px);
+  }
+}
+
+/* ===== Partial RTL: tablet/mobile single-rail lineage spine — Session 36 user request =====
+   Slice 5.4c shipped a desktop-only spine RTL mirror (scoped above to ≥1200px AND
+   ≥880px). Below that breakpoint the timeline collapses to single-rail at
+   @media (max-width: 1199px), (max-height: 879px) — that block anchors the spine
+   + dots at physical-LEFT (left: 16px) under BOTH locales, leaving companies on
+   physical-right under /ar and fighting Arabic reading flow.
+
+   Disciplines (LESSONS Session 36):
+   1. Under RTL, flexbox properties (justify-content, align-items in column-flex,
+      flex-direction: row) AUTO-FLIP — leave them alone. The LTR rule's
+      `justify-content: flex-start` already puts content on physical-right under
+      /ar for free.
+   2. Transforms are ALWAYS physical-coordinate (no auto-flip). A dot with
+      `right: 16px; transform: translate(-50%, 0)` lands its center at 27px from
+      the right edge (NOT 16px), because the translate shifts physical-LEFT by
+      5.5px. To center the dot ON a spine at 16px from the right edge, flip the
+      translate sign to `translate(50%, 0)`. Same for the spine's sub-pixel
+      crispness translateX(-0.5px) → translateX(0.5px). Without these flips,
+      spine + dots render in different vertical columns and look "disconnected." */
+@media (max-width: 1199px), (max-height: 879px) {
+  html[dir="rtl"] .tl-list::before {
+    left: auto;
+    right: 16px;
+    transform: translateX(0.5px);
+  }
+  html[dir="rtl"] .tl-entry,
+  html[dir="rtl"] .tl-entry.side-left,
+  html[dir="rtl"] .tl-entry.side-right {
+    padding-left: 0;
+    padding-right: 40px;
+  }
+  html[dir="rtl"] .tl-entry.side-left .tl-text,
+  html[dir="rtl"] .tl-entry.side-right .tl-text { text-align: right; }
+  html[dir="rtl"] .tl-dot {
+    left: auto;
+    right: 16px;
+    transform: translate(50%, 0);
+  }
+  html[dir="rtl"] .tl-entry:hover .tl-dot,
+  html[dir="rtl"] .tl-entry.is-active .tl-dot {
+    transform: translate(50%, 0) scale(1.35);
+  }
+  html[dir="rtl"] .tl-details-bullets li { padding-left: 0; padding-right: 14px; }
+  html[dir="rtl"] .tl-details-bullets li::before { left: auto; right: 0; }
+}
+
+/* === RTL additions — chat drawer text + project card actions === */
+
+/* ChatDrawer slide direction is INTENTIONALLY not flipped under /ar.
+   Rationale: the ChatFAB stays bottom-right under both locales (Session 36
+   locked-in decision — chat-trigger follows global convention, not writing
+   direction). Anchoring the drawer to the left under /ar would put the
+   trigger and the drawer on opposite sides of the viewport — bad UX. Drawer
+   stays right, slides from right, matches FAB position.
+
+   Right-align chat-bubble TEXT under /ar so English answers (which Sonnet
+   may produce per Language rule when the visitor asks in English) read in
+   alignment with the rest of the RTL chrome. Bubble PLACEMENT is unchanged
+   — it's governed by `align-self` on the flex container, which auto-flips
+   correctly. Only the text-block alignment within the bubble is overridden. */
+html[dir="rtl"] .chat-msg {
+  text-align: right;
+}
+
+/* ProjectCard `.card-actions` is intentionally NOT overridden under RTL.
+   The default flex auto-flip produces [READ SPEC visual-left][GITHUB visual-right]
+   grouped at physical-left of card — matches the rest of the mirrored chrome. */
