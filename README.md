@@ -103,8 +103,9 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   physical-left of the spine, text on physical-right), repositioned the detail
   card to physical-left with a spine-side buffer (`margin-right` swap because
   `margin-left` was the LTR buffer side), flipped the "Select an entry"
-  chevron, and anchored the ChatFAB at bottom-left for inline-end visual
-  symmetry with the hero pills and social icons. The React 19 script-tag
+  chevron, and (initially) moved the ChatFAB to bottom-left for inline-end
+  symmetry with the hero pills and social icons — later reverted in a
+  Session 36 polish pass, see below. The React 19 script-tag
   warning that fired on every locale toggle is gone too — I moved the
   pre-paint theme initializer to `public/prepaint-theme.js` and reference it
   via `<script src>` (React 19 only warns about inline scripts with `children`
@@ -113,6 +114,22 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   The Arabic prose is machine-authored best-effort; I've flagged the strings
   via `_review` keys in `ar.json` and inline comments in `journey.ts` /
   `projects.ts` / `skills.ts` so a native reviewer can refine before launch.
+- ✅ **Session 36 follow-ups** — A small batch of polish after living with 5.4c
+  for a session. The EN↔AR locale toggle now preserves the active section: I
+  read the active link from `.nav-links a.active` (written by `SectionObserver`)
+  and carry it as a hash fragment into `router.replace(target, { locale, scroll:
+  false })`, so toggling from About or Projects lands at the same section in the
+  new locale instead of snapping back to Hero. The ChatFAB is back to
+  bottom-right under both locales — global chat-trigger convention won over
+  local RTL symmetry. The lineage spine RTL mirror now extends to iPad/mobile
+  (`≤1199px` or `≤879px` height) — 5.4c only mirrored the desktop alternating
+  spine, leaving the single-rail tablet/mobile spine on physical-left under
+  `/ar` and fighting reading flow; the new block also flips the spine's
+  sub-pixel `translateX(-0.5px)` and the dot's `translate(-50%, 0)` centering
+  math, since CSS transforms are physical-coordinate and don't auto-flip with
+  `dir`. And the 4th project card (Telecom Churn) got its missing status dot
+  back — was using a `'plain'` status variant that rendered text-only, switched
+  to `'live'` to match the other deployed projects.
 - [ ] **Slice 5.4d** — Next up: I'm translating the ChatDrawer welcome shell
   and making the RAG pipeline multilingual — adding a §8 LANGUAGE RULE to my
   SYSTEM_PROMPT so Claude follows the visitor's language across turns, an
@@ -120,10 +137,11 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   the Haiku rewrite phase. The Voyage `voyage-3` embedding model is already
   multilingual, so retrieval support is free.
 - [ ] **Slice 5.5a/b** — Then I'm closing out the remaining RTL CSS pass —
-  ChatDrawer slide direction, theme toggle ball, projects card actions
-  reversal, and the full lineage timeline mirror — followed by a 9-breakpoint
-  audit and a detail-card geometry invariant probe under `/ar` to make sure
-  the LTR clearance math holds in the mirrored layout.
+  ChatDrawer slide direction, theme toggle ball, and projects card actions
+  reversal — followed by a 9-breakpoint audit and a detail-card geometry
+  invariant probe under `/ar` to make sure the LTR clearance math holds in
+  the mirrored layout. (Lineage timeline mirror is now fully done across all
+  breakpoints via 5.4c + Session 36 follow-ups.)
 - 🟡 **Slices 5.1–5.3 (MDX blog)** — Deferred for now. I'm prioritizing the
   bilingual surface to unblock the Arabic-speaking part of my UAE hiring
   audience first; the blog work resumes once Phase 5's i18n surface fully
