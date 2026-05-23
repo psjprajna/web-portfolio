@@ -1,3 +1,10 @@
+// All `translations.ar` fields are machine-authored best-effort. Native-speaker
+// review required pre-launch — see Slice 5.4c handoff. Technical proper nouns
+// inside `keywords` (LLMs, SFT, RLHF, LangChain, FastAPI, PostgreSQL, etc.)
+// stay Latin in all locales. `eyebrow` and `title` get Arabic equivalents where
+// a clear translation exists; acronyms ("GenAI") and brand-like terms ("RAG")
+// stay Latin within the otherwise-translated title prose.
+
 export type SkillDot = 'd-gold' | 'd-ink' | 'd-terra'
 
 export type SkillIconName =
@@ -8,6 +15,11 @@ export type SkillIconName =
   | 'cloud'
   | 'data'
 
+export interface SkillAr {
+  eyebrow?: string
+  title?: string
+}
+
 export interface Skill {
   num: string
   dot: SkillDot
@@ -15,6 +27,7 @@ export interface Skill {
   title: string
   keywords: string
   iconName: SkillIconName
+  translations?: { ar?: SkillAr }
 }
 
 export const SKILLS: readonly Skill[] = [
@@ -26,6 +39,12 @@ export const SKILLS: readonly Skill[] = [
     keywords:
       'LLMs, SFT, RLHF, DPO, LangChain, LangGraph, LoRA (PEFT), Claude API, AraBERT, spaCy, HITL',
     iconName: 'genai',
+    translations: {
+      ar: {
+        eyebrow: 'GenAI',
+        title: 'GenAI / نماذج لغوية كبيرة',
+      },
+    },
   },
   {
     num: '02',
@@ -35,6 +54,12 @@ export const SKILLS: readonly Skill[] = [
     keywords:
       'RAG, Langfuse, RAGAS, FAISS, Pinecone, BGE Reranker, sentence-transformers',
     iconName: 'rag',
+    translations: {
+      ar: {
+        eyebrow: 'الاسترجاع',
+        title: 'الاسترجاع وRAG',
+      },
+    },
   },
   {
     num: '03',
@@ -44,6 +69,12 @@ export const SKILLS: readonly Skill[] = [
     keywords:
       'TensorFlow, Keras, TFLite, ResNet, MTCNN, OpenCV, Diffusion Models, XGBoost, CatBoost, SHAP',
     iconName: 'ml',
+    translations: {
+      ar: {
+        eyebrow: 'تعلم آلي',
+        title: 'تعلم آلي / تعلم عميق',
+      },
+    },
   },
   {
     num: '04',
@@ -53,6 +84,12 @@ export const SKILLS: readonly Skill[] = [
     keywords:
       'Python, JavaScript, TypeScript, HTML / CSS, Next.js, React, Flask, FastAPI, Pydantic, Pandas, Prisma',
     iconName: 'frameworks',
+    translations: {
+      ar: {
+        eyebrow: 'الحزم',
+        title: 'اللغات والأطر',
+      },
+    },
   },
   {
     num: '05',
@@ -62,6 +99,12 @@ export const SKILLS: readonly Skill[] = [
     keywords:
       'AWS (CodePipeline, Elastic Beanstalk), Azure (OpenAI, AI Search, Container Apps), Docker, Linux cron, Airflow, MLflow, Bash',
     iconName: 'cloud',
+    translations: {
+      ar: {
+        eyebrow: 'السحابة',
+        title: 'السحابة والبنية التحتية',
+      },
+    },
   },
   {
     num: '06',
@@ -70,5 +113,18 @@ export const SKILLS: readonly Skill[] = [
     title: 'Data / BI',
     keywords: 'PostgreSQL, MySQL, Oracle, SQL, Power BI, Splunk',
     iconName: 'data',
+    translations: {
+      ar: {
+        eyebrow: 'البيانات',
+        title: 'البيانات / ذكاء الأعمال',
+      },
+    },
   },
 ]
+
+export function localizeSkill(skill: Skill, locale: string): Skill {
+  if (locale === 'ar' && skill.translations?.ar) {
+    return { ...skill, ...skill.translations.ar }
+  }
+  return skill
+}

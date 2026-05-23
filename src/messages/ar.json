@@ -1,0 +1,82 @@
+{
+  "Navbar": {
+    "about": "عن",
+    "projects": "المشاريع"
+  },
+  "Hero": {
+    "locationPill": "دبي، الإمارات",
+    "availability": "متاحة للعمل",
+    "tagline": "مهندسة ذكاء اصطناعي وتعلم آلي تبني <phrase>أنظمة حقيقية</phrase> للإنتاج — أكثر من ٣ سنوات في الذكاء الاصطناعي الفيدرالي الأمريكي (NHTSA) وتدريب نماذج OpenAI الرائدة في Scale AI.",
+    "ctaPrimary": "اطّلع على أعمالي →",
+    "ctaSecondary": "اسألني أي شيء ✦",
+    "lookingFor": "أبحث عن دوري التالي في هندسة الذكاء الاصطناعي.",
+    "scrollHint": "مرّر",
+    "scrollAria": "مرّر إلى قسم عني"
+  },
+  "Footer": {
+    "name": "براجنا شيتي",
+    "location": "دبي، الإمارات"
+  },
+  "Social": {
+    "linkedinAria": "LinkedIn",
+    "githubAria": "GitHub",
+    "emailAria": "البريد الإلكتروني — انقر لنسخ العنوان",
+    "copyToast": "تم نسخ البريد ✓"
+  },
+  "ChatFAB": {
+    "openChatAria": "افتح الدردشة"
+  },
+  "MobileMenu": {
+    "home": "الرئيسية",
+    "openAria": "افتح القائمة",
+    "closeAria": "أغلق القائمة"
+  },
+  "About": {
+    "heading": "أبني أنظمة<br></br><em>تفكّر.</em>",
+    "quote": "“أبني أنظمة ذكاء اصطناعي تصل إلى الإنتاج — في البنية التحتية الفيدرالية، وخطوط تدريب النماذج الرائدة، وأمام مستخدمين حقيقيين.”",
+    "para1": "مهندسة ذكاء اصطناعي وتعلم آلي بخبرة مباشرة داخل خط تدريب نماذج OpenAI الرائدة (SFT + RLHF/PPO/DPO في Scale AI) وأكثر من ٣ سنوات في بناء أنظمة ذكاء اصطناعي إنتاجية على البنية التحتية الفيدرالية الأمريكية لوزارة النقل الأمريكية / NHTSA.",
+    "para2": "متخصّصة في هندسة خطوط RAG (الاسترجاع الهجين، تقييم RAGAS، مراقبة LangFuse)، وبنى الوكلاء المتعددين (LangGraph وReAct)، وعمليات MLOps الشاملة من تتبّع MLflow إلى رصد الانحراف والنشر عبر FastAPI. مقيمة الآن في دبي ومتاحة فوراً.",
+    "_review": ["heading", "quote", "para1", "para2"]
+  },
+  "Lineage": {
+    "label": "المسار",
+    "title": "المسيرة المهنية",
+    "subtitle": "العمل والدراسة والمسار الذي أوصلني إلى هنا",
+    "hint": "اختر عنصراً لقراءة المزيد"
+  },
+  "Arsenal": {
+    "label": "الترسانة",
+    "title": "المنظومة التقنية",
+    "subtitle": "أدوات المهنة ومجالات الخبرة"
+  },
+  "Projects": {
+    "label": "الفهرس",
+    "title": "أعمال مختارة",
+    "subtitle": "وكلاء نماذج لغوية وأنظمة تعلم آلي وصلت إلى الإنتاج"
+  },
+  "ProjectCard": {
+    "githubLabel": "GitHub",
+    "specLabel": "اقرأ المواصفات"
+  },
+  "ChatDrawer": {
+    "header": "اسأل براجنا",
+    "subtitle": "إجابات مدعومة بالمصادر حول المشاريع والمسيرة والمهارات — تُبَث من Claude.",
+    "welcomeEyebrow": "مرحبًا",
+    "welcomeBody": "اسأل أي شيء عن عمل براجنا في الذكاء الاصطناعي — المشاريع والمسيرة والمهارات. الإجابات تُبَث رمزًا برمز مع الإشارة إلى المصدر.",
+    "tryOneOfThese": "جرّب أحد هذه الأسئلة",
+    "suggestion1": "كيف بنيتِ نظام RAG لسياسات حكومة الإمارات؟",
+    "suggestion2": "ما الذي فعلتِه في Scale AI؟",
+    "suggestion3": "أخبريني عن عملك في معالجة اللغة العربية",
+    "suggestion4": "أين تقيمين وهل أنتِ متاحة للعمل؟",
+    "chatAriaLabel": "الدردشة مع براجنا",
+    "closeAriaLabel": "أغلق الدردشة",
+    "inputAriaLabel": "رسالة الدردشة",
+    "inputPlaceholder": "اسأل أي شيء…",
+    "sendAriaLabel": "إرسال",
+    "sourcesLabel": "المصادر",
+    "sourceLabel": "المصدر",
+    "errorGeneric": "حدث خطأ ما. حاول مرة أخرى.",
+    "errorPartial": "حدث خطأ ما.",
+    "_review": ["header", "subtitle", "welcomeEyebrow", "welcomeBody", "tryOneOfThese", "suggestion1", "suggestion2", "suggestion3", "suggestion4", "chatAriaLabel", "closeAriaLabel", "inputAriaLabel", "inputPlaceholder", "sendAriaLabel", "sourcesLabel", "sourceLabel", "errorGeneric", "errorPartial"]
+  }
+}

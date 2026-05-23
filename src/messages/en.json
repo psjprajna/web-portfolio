@@ -1,0 +1,80 @@
+{
+  "Navbar": {
+    "about": "About",
+    "projects": "Projects"
+  },
+  "Hero": {
+    "locationPill": "Dubai, UAE",
+    "availability": "Available for work",
+    "tagline": "AI/ML Engineer building <phrase>real systems</phrase> for production — 3+ years across U.S. federal AI (NHTSA) and OpenAI frontier-model training at Scale AI.",
+    "ctaPrimary": "See my work →",
+    "ctaSecondary": "Ask me anything ✦",
+    "lookingFor": "Looking for my next AI engineering role.",
+    "scrollHint": "Scroll",
+    "scrollAria": "Scroll to About"
+  },
+  "Footer": {
+    "name": "Prajna Shetty",
+    "location": "Dubai, UAE"
+  },
+  "Social": {
+    "linkedinAria": "LinkedIn",
+    "githubAria": "GitHub",
+    "emailAria": "Email — click to copy address",
+    "copyToast": "Email copied ✓"
+  },
+  "ChatFAB": {
+    "openChatAria": "Open chat"
+  },
+  "MobileMenu": {
+    "home": "Home",
+    "openAria": "Open menu",
+    "closeAria": "Close menu"
+  },
+  "About": {
+    "heading": "Building systems<br></br>that <em>reason.</em>",
+    "quote": "“I build AI systems that ship — to federal infrastructure, frontier-model training pipelines, and real users.”",
+    "para1": "AI/ML Engineer with direct experience inside OpenAI’s frontier LLM training pipeline (SFT + RLHF/PPO/DPO at Scale AI) and 3+ years building production AI systems on U.S. federal infrastructure for the U.S. Department of Transportation / NHTSA.",
+    "para2": "Specialise in RAG pipeline engineering (hybrid retrieval, RAGAS evaluation, LangFuse observability), multi-agent architectures (LangGraph, ReAct), and end-to-end MLOps from MLflow tracking to drift monitoring and FastAPI deployment. Now Dubai-based, available immediately."
+  },
+  "Lineage": {
+    "label": "Lineage",
+    "title": "Professional Lineage",
+    "subtitle": "Work, study & the path that got me here",
+    "hint": "Select an entry to read more"
+  },
+  "Arsenal": {
+    "label": "Arsenal",
+    "title": "Technical Stack",
+    "subtitle": "Tools of the trade & expertise areas"
+  },
+  "Projects": {
+    "label": "Catalog",
+    "title": "Selected Works",
+    "subtitle": "LLM agents & ML systems shipped to production"
+  },
+  "ProjectCard": {
+    "githubLabel": "GITHUB",
+    "specLabel": "READ SPEC"
+  },
+  "ChatDrawer": {
+    "header": "Ask Prajna",
+    "subtitle": "Grounded answers about projects, the timeline, and skills — streamed from Claude.",
+    "welcomeEyebrow": "Welcome",
+    "welcomeBody": "Ask anything about Prajna’s AI work — projects, lineage, skills. Answers are streamed token-by-token, citing the source they came from.",
+    "tryOneOfThese": "Try one of these",
+    "suggestion1": "How did you build the UAE Government Policy RAG system?",
+    "suggestion2": "What did you do at Scale AI?",
+    "suggestion3": "Tell me about your Arabic NLP work",
+    "suggestion4": "Where are you based and available for work?",
+    "chatAriaLabel": "Chat with Prajna",
+    "closeAriaLabel": "Close chat",
+    "inputAriaLabel": "Chat message",
+    "inputPlaceholder": "Ask anything…",
+    "sendAriaLabel": "Send",
+    "sourcesLabel": "Sources",
+    "sourceLabel": "Source",
+    "errorGeneric": "Something went wrong. Try again.",
+    "errorPartial": "Something went wrong."
+  }
+}

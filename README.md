@@ -4,7 +4,8 @@ A production AI portfolio for an Applied AI engineer (Dubai, UAE). The site
 itself demonstrates the work it describes: a multi-stage RAG pipeline answers
 visitor questions about the resume, bio, and project READMEs with
 streaming Claude Sonnet synthesis. Embedded at the data layer (pgvector) and
-served from the edge (Cloudflare Workers).
+served from the edge (Cloudflare Workers). Bilingual (English + Arabic) with
+full RTL support across hero, lineage timeline, project grid, and chat surfaces.
 
 For a full technical deep-dive of every AI subsystem (query expansion, multi-query
 retrieval, anchor + dedup, prompt caching, refusal architecture, telemetry,
@@ -23,13 +24,14 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
 - **Anthropic Claude API** — Haiku for low-latency NLP, Sonnet for higher-quality
   RAG synthesis
 - **Tailwind CSS v4** + **Framer Motion** for the design system
+- **next-intl 4** for routing-aware bilingual (EN/AR) i18n with RTL CSS pass
 - **Vitest** + **Testing Library** for unit/integration tests
 
 ---
 
 ## Status
 
-### Shipped to production (Phase 0 → 3)
+### Shipped to production (Phase 0 → 4)
 
 - **Phase 0** — Repo scaffold, TS strict, Zod env validation, arch-boundary fitness
   tests, CI pipeline
@@ -38,46 +40,37 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
 - **Phase 2** — Core UI: warm editorial design system, alternating-spine lineage
   timeline, project grid, light/dark mode
 - **Phase 3** — Real content: 6 lineage entries with real entity logos,
-  6-category Arsenal/Tech Stack, 4 curated projects, first-person bio
+  6-category Arsenal/Tech Stack, 4 curated projects, third-person bio
+- **Phase 4** — Production RAG live at
+  [`web-portfolio.prajna-shetty39.workers.dev`](https://web-portfolio.prajna-shetty39.workers.dev/)
+  (v0.4.0): Voyage `voyage-3` embeddings into Supabase pgvector across bio,
+  resume, projects, and READMEs; Haiku 4.5 multi-query expansion; Sonnet 4.6
+  streaming synthesis through a token-by-token ChatDrawer with source
+  attribution and SYSTEM_PROMPT-only refusal. See
+  [`docs/AI_FEATURES.md`](docs/AI_FEATURES.md) for the technical deep-dive.
 
-### Phase 4 — AI features (complete)
+### Phase 5 — Bilingual EN/AR (complete)
 
-- ✅ **Slice 4.0** — RAG schema migration: `bio_chunks`, `resume_chunks`,
-  `rag_queries`, `project_chunks`, projects extended for resume-only entries
-- ✅ **Slice 4.1** — pgvector embedding pipeline (Voyage `voyage-3` via direct
-  fetch, batched to respect free-tier 3 RPM)
-- ✅ **Slice 4.1b/c + verify** — bio (10 chunks), resume (6 chunks), retrieval
-  probe (9/10 hand-curated queries return expected chunk in top-3)
-- ✅ **Task #18** — seed `projects` table from curated data (4 rows embedded
-  via batched Voyage call)
-- ✅ **Slice 4.2** — `<ChatDrawer>` end-to-end:
-  `match_chunks` Postgres RPC (UNION over bio ∪ resume ∪ projects ∪ project_readme,
-  HNSW cosine distance) → `/api/ai/rag` SSE-streaming route → token-by-token
-  streaming UI with source attribution chips
-- ✅ **Slice 4.2.x** — Project README chunking (corpus 19 → 47 chunks)
-- ✅ **Slice 4.2e** — Anthropic prompt caching + in-process answer LRU +
-  `cache_hit` telemetry — single Sonnet warm-replay measured at **1085× latency drop**
-- ✅ **Slice 4.2f/f.1/f.2/f.3** — Multi-query expansion via Haiku 4.5
-  (`expandQuery` + `matchChunksMulti`), `NO_REWRITE` sentinel for off-corpus
-  inputs, refusal-band rationale refresh
-- 🔁 **Slice 4.3** — Natural-language project filter: shipped + reverted
-  (4-project corpus too small to justify NL filtering over eyeballing the grid).
-  Net carryover: `createCache` factory, `ProjectCard` extraction,
-  `rag_queries.feature` CHECK enum.
-- ✅ **Slice 4.2g** — Chatbot quality pass: Profile-facts bio chunk +
-  AI-assistant voice + score-based refusal gate **removed**. The SYSTEM_PROMPT's
-  off-corpus refusal + anti-injection rules are now the sole refusal mechanism.
-  **Closes Phase 4.** See `docs/AI_FEATURES.md` for the full technical
-  deep-dive.
-- 🚫 **Slices 4.4 / 4.5 / 4.6** — Persona-adaptive hero, inline code explainer,
-  terminal easter egg. Retired Session 30 on a scope-discipline decision —
-  visitor-driven rather than demo-driven Phase 4 close.
+Bilingual surface (English + Arabic) wired through next-intl 4 routing, the
+`[locale]` App Router segment, a Noto Sans Arabic font load, and a full RTL
+CSS pass spanning hero, lineage timeline, project grid, ChatDrawer, and
+footer. Voyage `voyage-3` is natively multilingual, so cross-lingual
+retrieval works without a separate Arabic corpus — a SYSTEM_PROMPT Language
+rule and per-query script-range detector keep answer language aligned with
+visitor language regardless of URL locale. Cookie-based dark-mode
+persistence makes locale toggling zero-flash. The chatbot renders a
+constrained markdown emphasis hierarchy (bold for headlines, italic for
+model and benchmark names, plain for proper-noun lists) via react-markdown
+with a `[p, strong, em]` allowlist that blocks prompt-injection. Project
+card grid uses a structural row-template anchor so the row baselines align
+across locales at all desktop widths.
 
-### Planned
+MDX blog (Slices 5.1–5.3) deferred until the bilingual surface ships.
 
-- **Phase 5** — MDX blog + EN/AR i18n (RTL layout pass)
-- **Phase 6** — Lighthouse audit, SEO/OG/JSON-LD, mobile pass, analytics +
-  persona events, v1.0.0 launch
+### Next
+
+- **Phase 6** — Lighthouse audit, SEO + OG + JSON-LD, mobile pass,
+  analytics + persona events, v1.0.0 launch
 
 ---
 

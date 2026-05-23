@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import type { Project, ProjectStatus } from '@/lib/data/projects'
 
 interface Props {
@@ -45,9 +46,10 @@ export function ProjectCard({ project }: Props) {
 }
 
 function ActionButton({ kind, href }: { kind: 'github' | 'spec'; href: string | undefined }) {
+  const t = useTranslations('ProjectCard')
   const cls = `card-btn card-btn-${kind}`
   const icon = kind === 'github' ? 'code' : 'description'
-  const label = kind === 'github' ? 'GITHUB' : 'READ SPEC'
+  const label = kind === 'github' ? t('githubLabel') : t('specLabel')
   if (href === undefined) {
     return (
       <span className={`${cls} is-disabled`} aria-disabled="true">

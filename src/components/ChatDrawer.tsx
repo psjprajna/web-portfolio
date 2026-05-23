@@ -1,14 +1,27 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import ReactMarkdown from 'react-markdown'
 import { CHAT_OPEN_EVENT, closeChatDrawer } from '@/lib/chat-drawer'
 
-const SUGGESTIONS = [
-  'How did you build the UAE Government Policy RAG system?',
-  'What did you do at Scale AI?',
-  'Tell me about your Arabic NLP work',
-  'Where are you based and available for work?',
-]
+// react-markdown is constrained to a minimal allowlist so prompt-injection
+// attempts cannot inject headings, links, images, or HTML. Refused / errored
+// messages bypass the parser entirely (server-controlled plain text).
+const ALLOWED_MD_ELEMENTS = ['p', 'strong', 'em'] as const
+
+function renderAiMessageBody(text: string, plain: boolean) {
+  if (plain) return <>{text}</>
+  return (
+    <ReactMarkdown
+      allowedElements={[...ALLOWED_MD_ELEMENTS]}
+      unwrapDisallowed
+      skipHtml
+    >
+      {text}
+    </ReactMarkdown>
+  )
+}
 
 interface Source {
   source: 'bio' | 'resume' | 'project'
@@ -48,6 +61,8 @@ type SseEvent =
   | { type: 'error' }
 
 export function ChatDrawer() {
+  const t = useTranslations('ChatDrawer')
+  const suggestions = [t('suggestion1'), t('suggestion2'), t('suggestion3'), t('suggestion4')]
   const [value, setValue] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [isSending, setIsSending] = useState(false)
@@ -132,7 +147,7 @@ export function ChatDrawer() {
           signal: controller.signal,
         })
         if (!res.ok || !res.body) {
-          updateAi((m) => ({ ...m, text: 'Something went wrong. Try again.', isStreaming: false, errored: true }))
+          updateAi((m) => ({ ...m, text: t('errorGeneric'), isStreaming: false, errored: true }))
           return
         }
 
@@ -165,7 +180,7 @@ export function ChatDrawer() {
                 updateAi((m) => ({ ...m, isStreaming: false }))
                 break outer
               } else if (event.type === 'error') {
-                updateAi((m) => ({ ...m, isStreaming: false, errored: true, text: m.text || 'Something went wrong.' }))
+                updateAi((m) => ({ ...m, isStreaming: false, errored: true, text: m.text || t('errorPartial') }))
                 break outer
               }
             }
@@ -173,7 +188,7 @@ export function ChatDrawer() {
         }
       } catch (err) {
         if (!(err instanceof DOMException && err.name === 'AbortError')) {
-          updateAi((m) => ({ ...m, isStreaming: false, errored: true, text: m.text || 'Something went wrong.' }))
+          updateAi((m) => ({ ...m, isStreaming: false, errored: true, text: m.text || t('errorPartial') }))
         } else {
           updateAi((m) => ({ ...m, isStreaming: false }))
         }
@@ -182,7 +197,7 @@ export function ChatDrawer() {
         setIsSending(false)
       }
     },
-    [isSending, messages]
+    [isSending, messages, t]
   )
 
   const onSubmit = (e: React.FormEvent) => {
@@ -195,20 +210,20 @@ export function ChatDrawer() {
   return (
     <>
       <div className="chat-backdrop" onClick={handleClose} aria-hidden="true" />
-      <aside className="chat-drawer" aria-label="Chat with Prajna">
+      <aside className="chat-drawer" aria-label={t('chatAriaLabel')}>
         <header className="chat-header">
           <div className="chat-header-text">
             <div className="chat-title-row">
               <span className="chat-glyph" aria-hidden="true">
                 ✦
               </span>
-              <h3 className="chat-title">Ask Prajna</h3>
+              <h3 className="chat-title">{t('header')}</h3>
             </div>
             <p className="chat-subtitle">
-              Grounded answers about projects, the timeline, and skills — streamed from Claude.
+              {t('subtitle')}
             </p>
           </div>
-          <button type="button" className="chat-close" onClick={handleClose} aria-label="Close chat">
+          <button type="button" className="chat-close" onClick={handleClose} aria-label={t('closeAriaLabel')}>
             <svg
               width="14"
               height="14"
@@ -230,14 +245,14 @@ export function ChatDrawer() {
           {isEmptyTranscript ? (
             <>
               <div className="chat-welcome">
-                <span className="chat-welcome-eyebrow">Welcome</span>
+                <span className="chat-welcome-eyebrow">{t('welcomeEyebrow')}</span>
                 <p className="chat-welcome-line">
-                  Ask anything about Prajna&rsquo;s AI work — projects, lineage, skills. Answers are streamed token-by-token, citing the source they came from.
+                  {t('welcomeBody')}
                 </p>
               </div>
-              <span className="chat-suggestions-label">Try one of these</span>
+              <span className="chat-suggestions-label">{t('tryOneOfThese')}</span>
               <div className="chat-suggestions">
-                {SUGGESTIONS.map((suggestion) => (
+                {suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
@@ -273,10 +288,14 @@ export function ChatDrawer() {
                         ? { role: 'status' as const }
                         : {})}
                     >
-                      {m.text}
+                      {renderAiMessageBody(m.text, m.refused || m.errored)}
                       {m.isStreaming && <span className="chat-cursor" aria-hidden="true">▍</span>}
                     </div>
-                    {!m.isStreaming && <span className="sr-only">{m.text}</span>}
+                    {!m.isStreaming && (
+                      <span className="sr-only">
+                        {renderAiMessageBody(m.text, m.refused || m.errored)}
+                      </span>
+                    )}
                     {!m.isStreaming && !m.refused && m.sources.length > 0 && (() => {
                       const seen = new Set<string>()
                       const dedup: Source[] = []
@@ -288,9 +307,9 @@ export function ChatDrawer() {
                         if (dedup.length === 2) break
                       }
                       return (
-                        <div className="chat-sources" aria-label="Sources">
+                        <div className="chat-sources" aria-label={t('sourcesLabel')}>
                           <span className="chat-sources-label">
-                            {dedup.length > 1 ? 'Sources' : 'Source'}:
+                            {dedup.length > 1 ? t('sourcesLabel') : t('sourceLabel')}:
                           </span>
                           {dedup.map((s, i) => (
                             <span key={`${m.id}-${i}`} className="chat-source-ref">
@@ -313,17 +332,17 @@ export function ChatDrawer() {
           <input
             ref={inputRef}
             className="chat-input"
-            placeholder="Ask anything…"
+            placeholder={t('inputPlaceholder')}
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            aria-label="Chat message"
+            aria-label={t('inputAriaLabel')}
             disabled={isSending}
             suppressHydrationWarning
           />
           <button
             type="submit"
             className="chat-send"
-            aria-label="Send"
+            aria-label={t('sendAriaLabel')}
             disabled={isSending || value.trim().length < 3}
           >
             <svg

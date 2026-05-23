@@ -76,4 +76,21 @@ describe('expandQuery — sentinel detection (Slice 4.2f.2)', () => {
     expect(result).toEqual(['how to bake sourdough starter'])
     expect(result).toHaveLength(1)
   })
+
+  it('preserves Arabic input through expansion when Haiku returns Arabic rewrites (Slice 5.4d)', async () => {
+    mockHaikuResponse(
+      'دور براجنا في Scale AI سنوات الخبرة\n' +
+        'عمل براجنا على RLHF في Scale AI\n' +
+        'محاذاة نماذج OpenAI براجنا Scale AI'
+    )
+    const arabicQuery = 'ما الذي فعلته في Scale AI؟'
+    const result = await expandQuery(arabicQuery)
+    expect(result).toHaveLength(4)
+    expect(result[0]).toBe(arabicQuery)
+    // All three rewrites should contain Arabic script (Unicode block U+0600-U+06FF)
+    const arabicRange = /[؀-ۿ]/
+    expect(result[1]).toMatch(arabicRange)
+    expect(result[2]).toMatch(arabicRange)
+    expect(result[3]).toMatch(arabicRange)
+  })
 })

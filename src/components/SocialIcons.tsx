@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type Variant = 'hero' | 'footer'
 
@@ -12,6 +13,7 @@ const EMAIL_URL = `mailto:${EMAIL_ADDRESS}`
 const DESKTOP_INPUT_QUERY = '(hover: hover) and (pointer: fine)'
 
 export function SocialIcons({ variant }: { variant: Variant }) {
+  const t = useTranslations('Social')
   const cls = variant === 'hero' ? 'hero-soc-btn' : 'icon-btn'
   const [copied, setCopied] = useState(false)
 
@@ -33,7 +35,7 @@ export function SocialIcons({ variant }: { variant: Variant }) {
         href={LINKEDIN_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="LinkedIn"
+        aria-label={t('linkedinAria')}
       >
         <LinkedInIcon />
       </a>
@@ -42,7 +44,7 @@ export function SocialIcons({ variant }: { variant: Variant }) {
         href={GITHUB_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="GitHub"
+        aria-label={t('githubAria')}
       >
         <GitHubIcon />
       </a>
@@ -50,13 +52,13 @@ export function SocialIcons({ variant }: { variant: Variant }) {
         className={cls}
         href={EMAIL_URL}
         onClick={handleEmailClick}
-        aria-label="Email — click to copy address"
+        aria-label={t('emailAria')}
       >
         <MailIcon />
       </a>
       {copied && (
         <span className="copy-toast" role="status" aria-live="polite">
-          Email copied ✓
+          {t('copyToast')}
         </span>
       )}
     </>
