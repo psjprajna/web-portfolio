@@ -40,6 +40,25 @@ type CacheHit = 'none' | 'prompt' | 'answer' | 'both'
 // retrieval can't ground.
 const REFUSAL_EMPTY =
   "I can't reach Prajna's portfolio search right now — please try again in a moment, or ask about a specific project, role, or skill."
+// REVIEW: machine-authored Arabic, needs native speaker pass before launch.
+const REFUSAL_EMPTY_AR =
+  "لا يمكنني الوصول إلى بحث محفظة براجنا في الوقت الحالي — يُرجى المحاولة مرة أخرى بعد قليل، أو اسأل عن مشروع أو دور أو مهارة محددة."
+
+// Arabic Unicode block (U+0600–U+06FF) covers the entire Arabic script for the
+// languages the portfolio targets. Presence of ANY Arabic codepoint in the
+// visitor's query routes the refusal to the Arabic copy. Locale (URL) and
+// answer language are deliberately decoupled: a visitor on /en who types
+// Arabic gets the Arabic refusal; the SYSTEM_PROMPT's LANGUAGE RULE applies
+// the same per-message detection at the synthesis layer.
+const ARABIC_SCRIPT_RANGE = /[؀-ۿ]/
+
+function isArabicQuery(text: string): boolean {
+  return ARABIC_SCRIPT_RANGE.test(text)
+}
+
+function pickRefusalCopy(query: string): string {
+  return isArabicQuery(query) ? REFUSAL_EMPTY_AR : REFUSAL_EMPTY
+}
 const MODEL_NAME = 'claude-sonnet-4-6'
 const TOP_K = 5
 const PER_QUERY_TOP_K = 3
@@ -163,7 +182,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const topScore = chunks[0]?.score ?? null
   const shouldRefuse = chunks.length === 0
-  const refusalCopy = REFUSAL_EMPTY
+  const refusalCopy = pickRefusalCopy(query)
   const sources = chunks.map((c) => ({
     source: c.source,
     title: c.title,

@@ -130,12 +130,38 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   `dir`. And the 4th project card (Telecom Churn) got its missing status dot
   back — was using a `'plain'` status variant that rendered text-only, switched
   to `'live'` to match the other deployed projects.
-- [ ] **Slice 5.4d** — Next up: I'm translating the ChatDrawer welcome shell
-  and making the RAG pipeline multilingual — adding a §8 LANGUAGE RULE to my
-  SYSTEM_PROMPT so Claude follows the visitor's language across turns, an
-  Arabic REFUSAL_EMPTY constant, and an Arabic-input expansion test through
-  the Haiku rewrite phase. The Voyage `voyage-3` embedding model is already
-  multilingual, so retrieval support is free.
+- ✅ **Slice 5.4d** — I translated the ChatDrawer chrome (18 keys: welcome
+  shell, suggestion chips, ARIA labels, input placeholder, Sources/Source
+  labels, two error variants) and made the RAG pipeline multilingual. I
+  appended a Language rule to my SYSTEM_PROMPT — Sonnet now responds in the
+  same language as the visitor's most recent message, follows mid-conversation
+  switches on the next reply, and preserves a fixed list of proper nouns
+  (`Prajna`, `Scale AI`, `MITRE`, `Dubai`, `Syneren`, `NHTSA`, `OpenAI`, plus
+  every technology and library name) in their original English form
+  regardless of answer language. I also added a one-line Arabic-preservation
+  rule to my EXPANSION_SYSTEM so Haiku emits Arabic rewrites for Arabic input
+  (Voyage `voyage-3` is multilingual; matching against the English corpus
+  works either way — no need to translate-to-English-then-expand). On the
+  refusal side, I added an Arabic `REFUSAL_EMPTY_AR` constant guarded by a
+  per-query Arabic script-range detector (`/[؀-ۿ]/`), so locale (URL) and
+  answer language are deliberately decoupled — a visitor on `/en` who types
+  Arabic gets an Arabic refusal, and the SYSTEM_PROMPT applies the same
+  per-message language detection at the synthesis layer. The route change
+  is a one-line swap (`const refusalCopy = REFUSAL_EMPTY` →
+  `pickRefusalCopy(query)`) — English path byte-identical, with a regression
+  test that asserts the literal English string. Cross-lingual retrieval
+  works "for free": an Arabic Scale AI question matches the same English
+  `resume` chunk at `0.542` cosine vs `0.577` for English — within the same
+  retrieval range. The 13-session cross-session retrieval invariant
+  (`0.577302345907969` on "What did you do at Scale AI?") held byte-exact
+  both before and after the slice, ratified now as a 14-session lattice.
+  Three new tests landed (Arabic refusal with a negative English-leak guard,
+  English byte-identical regression, Arabic expansion preservation) — full
+  suite is 79/79 passing. Arabic copy is machine-authored and flagged via
+  `_review` keys in `ar.json` (18 keys to pass to a native reviewer
+  pre-launch). ChatDrawer slide direction RTL, theme-toggle ball, and projects
+  card actions reversal remain explicitly scoped to Slice 5.5a — not regressed
+  here.
 - [ ] **Slice 5.5a/b** — Then I'm closing out the remaining RTL CSS pass —
   ChatDrawer slide direction, theme toggle ball, and projects card actions
   reversal — followed by a 9-breakpoint audit and a detail-card geometry

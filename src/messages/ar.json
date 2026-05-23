@@ -57,5 +57,26 @@
   "ProjectCard": {
     "githubLabel": "GitHub",
     "specLabel": "اقرأ المواصفات"
+  },
+  "ChatDrawer": {
+    "header": "اسأل براجنا",
+    "subtitle": "إجابات مدعومة بالمصادر حول المشاريع والمسيرة والمهارات — تُبَث من Claude.",
+    "welcomeEyebrow": "مرحبًا",
+    "welcomeBody": "اسأل أي شيء عن عمل براجنا في الذكاء الاصطناعي — المشاريع والمسيرة والمهارات. الإجابات تُبَث رمزًا برمز مع الإشارة إلى المصدر.",
+    "tryOneOfThese": "جرّب أحد هذه الأسئلة",
+    "suggestion1": "كيف بنيتِ نظام RAG لسياسات حكومة الإمارات؟",
+    "suggestion2": "ما الذي فعلتِه في Scale AI؟",
+    "suggestion3": "أخبريني عن عملك في معالجة اللغة العربية",
+    "suggestion4": "أين تقيمين وهل أنتِ متاحة للعمل؟",
+    "chatAriaLabel": "الدردشة مع براجنا",
+    "closeAriaLabel": "أغلق الدردشة",
+    "inputAriaLabel": "رسالة الدردشة",
+    "inputPlaceholder": "اسأل أي شيء…",
+    "sendAriaLabel": "إرسال",
+    "sourcesLabel": "المصادر",
+    "sourceLabel": "المصدر",
+    "errorGeneric": "حدث خطأ ما. حاول مرة أخرى.",
+    "errorPartial": "حدث خطأ ما.",
+    "_review": ["header", "subtitle", "welcomeEyebrow", "welcomeBody", "tryOneOfThese", "suggestion1", "suggestion2", "suggestion3", "suggestion4", "chatAriaLabel", "closeAriaLabel", "inputAriaLabel", "inputPlaceholder", "sendAriaLabel", "sourcesLabel", "sourceLabel", "errorGeneric", "errorPartial"]
   }
 }
