@@ -1686,3 +1686,24 @@ html[dir="rtl"] .lineage-hint-icon svg {
   html[dir="rtl"] .tl-details-bullets li { padding-left: 0; padding-right: 14px; }
   html[dir="rtl"] .tl-details-bullets li::before { left: auto; right: 0; }
 }
+
+/* === Slice 5.5a — RTL additions (chat drawer + project card actions) === */
+
+/* ChatDrawer — anchor + slide direction flip.
+   Re-declare open-state transform under the html[dir="rtl"] selector
+   because the closed-state rule below has higher specificity than the
+   global body.chat-open rule and would otherwise leave the drawer
+   stranded at translateX(-100%). */
+html[dir="rtl"] .chat-drawer {
+  right: auto;
+  left: 0;
+  border-left: 0;
+  border-right: 1px solid var(--border-soft);
+  box-shadow: 20px 0 60px var(--shadow-pop);
+  transform: translateX(-100%);
+}
+html[dir="rtl"] body.chat-open .chat-drawer { transform: translateX(0); }
+
+/* ProjectCard `.card-actions` is intentionally NOT overridden under RTL.
+   The default flex auto-flip produces [READ SPEC visual-left][GITHUB visual-right]
+   grouped at physical-left of card — matches the rest of the mirrored chrome. */
