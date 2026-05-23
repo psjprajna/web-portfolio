@@ -103,7 +103,7 @@ export const PROJECTS: readonly Project[] = [
     title: 'Telecom Churn Prediction',
     description:
       'Gradient boosting classifier on the IBM Telco dataset (7K rows, 26% churn) — 4 engineered features, 0.85 AUC-ROC across 5-fold StratifiedKFold, SHAP TreeExplainer identifying month-to-month contract as the top churn predictor. Deployed as FastAPI with opt-in SHAP explainability.',
-    status: { kind: 'plain', label: 'Live' },
+    status: { kind: 'live', label: 'Live' },
     thumbIcon: 'play_circle',
     metaArchitecture: { label: 'Architecture', value: 'Gradient Boosting + SHAP' },
     metaImpact: { label: 'Impact', value: '0.85 AUC-ROC', accent: true },

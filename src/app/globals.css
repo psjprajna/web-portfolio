@@ -1567,18 +1567,11 @@ html[dir="rtl"] .hero-name {
   html[dir="rtl"] .hero-soc-block { right: auto; left: 80px; }
 }
 
-/* ===== Partial RTL: chat FAB physical-left anchor — Session 35 user request =====
-   The floating chat button anchors at bottom-right in LTR. On /ar it should anchor
-   at bottom-LEFT to match the Arabic reading-direction edge convention. Both the
-   desktop (right: 28px) and mobile (right: 18px from line 1463) positions are
-   physical and don't auto-flip — explicit overrides at both breakpoints. */
-html[dir="rtl"] .chat-fab {
-  right: auto;
-  left: 28px;
-}
-@media (max-width: 767px) {
-  html[dir="rtl"] .chat-fab { right: auto; left: 18px; }
-}
+/* Slice 5.4c originally moved ChatFAB to physical-LEFT on /ar for symmetry with
+   the hero chrome anchored on physical-left under RTL. Reverted Session 36 per
+   user direction: FAB stays bottom-right under both locales — the discoverable
+   "ask me anything" affordance reads better at the bottom-right edge regardless
+   of locale, since users worldwide expect chat triggers there. */
 
 /* ===== Partial RTL: bio quote accent bar — Session 35 user request =====
    The bio blockquote uses a left-edge gold accent bar (border-left + padding-left).
@@ -1646,4 +1639,50 @@ html[dir="rtl"] .lineage-hint-icon svg {
     margin-left: 0;
     margin-right: clamp(72px, 6.4vw, 120px);
   }
+}
+
+/* ===== Partial RTL: tablet/mobile single-rail lineage spine — Session 36 user request =====
+   Slice 5.4c shipped a desktop-only spine RTL mirror (scoped above to ≥1200px AND
+   ≥880px). Below that breakpoint the timeline collapses to single-rail at
+   @media (max-width: 1199px), (max-height: 879px) — that block anchors the spine
+   + dots at physical-LEFT (left: 16px) under BOTH locales, leaving companies on
+   physical-right under /ar and fighting Arabic reading flow.
+
+   Disciplines (LESSONS Session 36):
+   1. Under RTL, flexbox properties (justify-content, align-items in column-flex,
+      flex-direction: row) AUTO-FLIP — leave them alone. The LTR rule's
+      `justify-content: flex-start` already puts content on physical-right under
+      /ar for free.
+   2. Transforms are ALWAYS physical-coordinate (no auto-flip). A dot with
+      `right: 16px; transform: translate(-50%, 0)` lands its center at 27px from
+      the right edge (NOT 16px), because the translate shifts physical-LEFT by
+      5.5px. To center the dot ON a spine at 16px from the right edge, flip the
+      translate sign to `translate(50%, 0)`. Same for the spine's sub-pixel
+      crispness translateX(-0.5px) → translateX(0.5px). Without these flips,
+      spine + dots render in different vertical columns and look "disconnected." */
+@media (max-width: 1199px), (max-height: 879px) {
+  html[dir="rtl"] .tl-list::before {
+    left: auto;
+    right: 16px;
+    transform: translateX(0.5px);
+  }
+  html[dir="rtl"] .tl-entry,
+  html[dir="rtl"] .tl-entry.side-left,
+  html[dir="rtl"] .tl-entry.side-right {
+    padding-left: 0;
+    padding-right: 40px;
+  }
+  html[dir="rtl"] .tl-entry.side-left .tl-text,
+  html[dir="rtl"] .tl-entry.side-right .tl-text { text-align: right; }
+  html[dir="rtl"] .tl-dot {
+    left: auto;
+    right: 16px;
+    transform: translate(50%, 0);
+  }
+  html[dir="rtl"] .tl-entry:hover .tl-dot,
+  html[dir="rtl"] .tl-entry.is-active .tl-dot {
+    transform: translate(50%, 0) scale(1.35);
+  }
+  html[dir="rtl"] .tl-details-bullets li { padding-left: 0; padding-right: 14px; }
+  html[dir="rtl"] .tl-details-bullets li::before { left: auto; right: 0; }
 }
