@@ -799,7 +799,16 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 
 .card {
   position: relative;
-  display: flex; flex-direction: column;
+  /* Grid layout (replaces flex column) anchors the thumb at a structural row
+     position rather than relying on .card-spacer flex absorption. With 6 children
+     and 6 explicit rows (header, title, desc, 1fr spacer, thumb, meta) the thumb
+     row is positioned by the 1fr spacer absorbing all variance above it; title
+     and desc wrap freely without affecting thumb Y. Pairs with the
+     .card-meta-grid .meta-item-value clamp below to equalize meta-row heights so
+     the thumb baseline aligns across all 4 cards in the row. Session 16 lesson
+     applied: prefer grid for hard structural anchoring over flex+margin-auto. */
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto auto;
   height: 100%;
   background: var(--warm-white);
   border-radius: 16px;
@@ -851,6 +860,13 @@ html.dark-mode #hero-cycle { color: var(--gold); }
 .meta-item-label { font-family: var(--sans); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 3px; }
 .meta-item-value { font-family: var(--sans); font-size: 12.5px; color: var(--ink); }
 .meta-item-value.accent { color: var(--gold); font-weight: 600; }
+/* Card 02's "Fine-Tuning / AraBERT + LoRA" wraps to 2 lines at desktop widths
+   while cards 01/03/04's architecture strings fit on 1 line. Without this
+   clamp, .card-meta heights differ across the row, .card-spacer absorption
+   becomes non-uniform, and the thumb + border-top divider drift vertically
+   between cards. Reserving worst-case 2-line height for every meta-item-value
+   locks the row baseline in both /en and /ar. */
+.card-meta-grid .meta-item-value { min-height: 2.6em; }
 
 .card-actions { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
 
