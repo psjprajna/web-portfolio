@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -74,12 +75,17 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale)
   const messages = await getMessages()
+  // Read theme from cookie so the server-rendered <html> carries dark-mode
+  // on every locale switch — prevents the class from being wiped by the
+  // layout re-render (prepaint-theme.js doesn't re-run on soft nav).
+  const themeCookie = (await cookies()).get('ps-theme')?.value
+  const themeClass = themeCookie === 'dark' ? ' dark-mode' : ''
 
   return (
     <html
       lang={locale}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
-      className={`${inter.variable} ${playfair.variable} ${jakarta.variable} ${jetbrains.variable} ${notoArabic.variable} antialiased`}
+      className={`${inter.variable} ${playfair.variable} ${jakarta.variable} ${jetbrains.variable} ${notoArabic.variable} antialiased${themeClass}`}
       suppressHydrationWarning
     >
       <head>

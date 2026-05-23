@@ -162,12 +162,43 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   pre-launch). ChatDrawer slide direction RTL, theme-toggle ball, and projects
   card actions reversal remain explicitly scoped to Slice 5.5a — not regressed
   here.
-- [ ] **Slice 5.5a/b** — Then I'm closing out the remaining RTL CSS pass —
-  ChatDrawer slide direction, theme toggle ball, and projects card actions
-  reversal — followed by a 9-breakpoint audit and a detail-card geometry
-  invariant probe under `/ar` to make sure the LTR clearance math holds in
-  the mirrored layout. (Lineage timeline mirror is now fully done across all
-  breakpoints via 5.4c + Session 36 follow-ups.)
+- ✅ **Slice 5.5a** — I closed out the remaining RTL CSS surfaces from
+  Phase 5's plan. The ChatDrawer slides in from physical-left under `/ar`
+  now: anchor swapped (`right: 0` → `left: 0`), border side flipped,
+  shadow x-offset sign-flipped, closed-state transform sign-flipped
+  (`translateX(100%)` → `translateX(-100%)`), and the open-state transform
+  re-declared under the `html[dir="rtl"]` selector — the closed-state rule
+  has higher specificity than the global `body.chat-open` rule and would
+  otherwise leave the drawer stranded off-screen-left after the user
+  clicks the FAB. Project card action buttons (`<> GITHUB` + `📄 READ
+  SPEC`) are intentionally left to RTL's default flex auto-flip — they
+  read `[READ SPEC][GITHUB]` grouped at physical-left of the card under
+  `/ar`, mirroring the rest of the page's chrome. The theme toggle ball
+  stayed put — I treated it as a chrome atom whose physical position
+  should not depend on reading direction (iOS/Apple convention for
+  non-text UI controls). Net change: one file, +21 lines, all append-only
+  inside the existing `html[dir="rtl"]` section. (Lineage timeline mirror
+  is fully done across all breakpoints via 5.4c + Session 36 follow-ups.)
+- ✅ **Dark-mode persistence fix** — Surfaced during the Slice 5.5a
+  walkthrough. The bug: toggling EN ↔ AR while in dark mode reset the
+  page back to light. Root cause was subtle — on locale switch the
+  layout re-renders, sending a fresh `<html lang dir className>` payload
+  that carries the font variables and `antialiased` but NOT the
+  `dark-mode` class (because `dark-mode` was being added imperatively by
+  the prepaint script, which only runs on initial page load, not on
+  client-side soft nav). The fix uses a cookie as the server-readable
+  theme persistence: `layout.tsx` reads `ps-theme` via `await cookies()`
+  and conditionally appends `dark-mode` to the `<html>` className
+  server-side; `ThemeToggle` writes the cookie alongside the existing
+  localStorage write on every toggle; the prepaint script picks up the
+  migration path by syncing localStorage → cookie on first load for
+  existing users whose theme is only in localStorage. Zero flash on
+  locale switch — the server renders the correct class on the very
+  first byte of the navigation.
+- [ ] **Slice 5.5b** — Final Phase 5 work: 9-breakpoint visual audit
+  plus a detail-card geometry invariant probe under `/ar` to make sure
+  the LTR clearance math (col 1 ≥ 40px, max-width clamp ≤ 380 + margin
+  clamp ≤ 120) holds in the mirrored layout.
 - 🟡 **Slices 5.1–5.3 (MDX blog)** — Deferred for now. I'm prioritizing the
   bilingual surface to unblock the Arabic-speaking part of my UAE hiring
   audience first; the blog work resumes once Phase 5's i18n surface fully

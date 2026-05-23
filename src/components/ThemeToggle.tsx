@@ -37,6 +37,9 @@ export function ThemeToggle() {
     } catch {
       // localStorage may be blocked
     }
+    // Cookie is what the server layout reads — keeps dark-mode applied
+    // on locale switch where the prepaint script does not re-run.
+    document.cookie = `${STORAGE_KEY}=${next};max-age=31536000;path=/;samesite=lax`
   }, [])
 
   return (
