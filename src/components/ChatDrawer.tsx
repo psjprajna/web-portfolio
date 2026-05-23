@@ -2,7 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import ReactMarkdown from 'react-markdown'
 import { CHAT_OPEN_EVENT, closeChatDrawer } from '@/lib/chat-drawer'
+
+// react-markdown is constrained to a minimal allowlist so prompt-injection
+// attempts cannot inject headings, links, images, or HTML. Refused / errored
+// messages bypass the parser entirely (server-controlled plain text).
+const ALLOWED_MD_ELEMENTS = ['p', 'strong', 'em'] as const
+
+function renderAiMessageBody(text: string, plain: boolean) {
+  if (plain) return <>{text}</>
+  return (
+    <ReactMarkdown
+      allowedElements={[...ALLOWED_MD_ELEMENTS]}
+      unwrapDisallowed
+      skipHtml
+    >
+      {text}
+    </ReactMarkdown>
+  )
+}
 
 interface Source {
   source: 'bio' | 'resume' | 'project'
@@ -269,10 +288,14 @@ export function ChatDrawer() {
                         ? { role: 'status' as const }
                         : {})}
                     >
-                      {m.text}
+                      {renderAiMessageBody(m.text, m.refused || m.errored)}
                       {m.isStreaming && <span className="chat-cursor" aria-hidden="true">▍</span>}
                     </div>
-                    {!m.isStreaming && <span className="sr-only">{m.text}</span>}
+                    {!m.isStreaming && (
+                      <span className="sr-only">
+                        {renderAiMessageBody(m.text, m.refused || m.errored)}
+                      </span>
+                    )}
                     {!m.isStreaming && !m.refused && m.sources.length > 0 && (() => {
                       const seen = new Set<string>()
                       const dedup: Source[] = []

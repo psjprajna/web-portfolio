@@ -44,36 +44,18 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
 
 ### Phase 4 — AI features (complete)
 
-- ✅ **Slice 4.0** — RAG schema migration: `bio_chunks`, `resume_chunks`,
-  `rag_queries`, `project_chunks`, projects extended for resume-only entries
-- ✅ **Slice 4.1** — pgvector embedding pipeline (Voyage `voyage-3` via direct
-  fetch, batched to respect free-tier 3 RPM)
-- ✅ **Slice 4.1b/c + verify** — bio (10 chunks), resume (6 chunks), retrieval
-  probe (9/10 hand-curated queries return expected chunk in top-3)
-- ✅ **Task #18** — seed `projects` table from curated data (4 rows embedded
-  via batched Voyage call)
-- ✅ **Slice 4.2** — `<ChatDrawer>` end-to-end:
-  `match_chunks` Postgres RPC (UNION over bio ∪ resume ∪ projects ∪ project_readme,
-  HNSW cosine distance) → `/api/ai/rag` SSE-streaming route → token-by-token
-  streaming UI with source attribution chips
-- ✅ **Slice 4.2.x** — Project README chunking (corpus 19 → 47 chunks)
-- ✅ **Slice 4.2e** — Anthropic prompt caching + in-process answer LRU +
-  `cache_hit` telemetry — single Sonnet warm-replay measured at **1085× latency drop**
-- ✅ **Slice 4.2f/f.1/f.2/f.3** — Multi-query expansion via Haiku 4.5
-  (`expandQuery` + `matchChunksMulti`), `NO_REWRITE` sentinel for off-corpus
-  inputs, refusal-band rationale refresh
-- 🔁 **Slice 4.3** — Natural-language project filter: shipped + reverted
-  (4-project corpus too small to justify NL filtering over eyeballing the grid).
-  Net carryover: `createCache` factory, `ProjectCard` extraction,
-  `rag_queries.feature` CHECK enum.
-- ✅ **Slice 4.2g** — Chatbot quality pass: Profile-facts bio chunk +
-  AI-assistant voice + score-based refusal gate **removed**. The SYSTEM_PROMPT's
-  off-corpus refusal + anti-injection rules are now the sole refusal mechanism.
-  **Closes Phase 4.** See `docs/AI_FEATURES.md` for the full technical
-  deep-dive.
-- 🚫 **Slices 4.4 / 4.5 / 4.6** — Persona-adaptive hero, inline code explainer,
-  terminal easter egg. Retired Session 30 on a scope-discipline decision —
-  visitor-driven rather than demo-driven Phase 4 close.
+Multi-stage RAG pipeline shipped end-to-end and live in production at
+[`web-portfolio.prajna-shetty39.workers.dev`](https://web-portfolio.prajna-shetty39.workers.dev/)
+(v0.4.0): Voyage `voyage-3` embeddings into Supabase pgvector across bio,
+resume, projects, and project READMEs (47 chunks); Haiku 4.5 multi-query
+expansion with a `NO_REWRITE` sentinel for off-corpus inputs; Postgres
+`match_chunks` RPC for HNSW cosine retrieval; Anthropic prompt caching plus
+an in-process answer LRU; Sonnet 4.6 streaming synthesis through a
+token-by-token ChatDrawer with source attribution. SYSTEM_PROMPT-only
+refusal (off-corpus + anti-injection — no score-based gate). See
+[`docs/AI_FEATURES.md`](docs/AI_FEATURES.md) for the full technical
+deep-dive (query expansion, anchor + dedup, prompt-cache mechanics,
+refusal architecture, telemetry, failure modes, cost model).
 
 ### Phase 5 — Bilingual EN/AR (in progress)
 
@@ -195,14 +177,41 @@ failure modes, cost model, test results), see **[`docs/AI_FEATURES.md`](docs/AI_
   existing users whose theme is only in localStorage. Zero flash on
   locale switch — the server renders the correct class on the very
   first byte of the navigation.
+- ✅ **Chatbot formatting hierarchy** — I added a meaningful emphasis
+  hierarchy to the chatbot's answers: `**bold**` reserved for ONE
+  headline per sentence (the single most important metric, or a project
+  name on its first mention), `*italic*` for model and method names
+  (*AraBERT*, *LoRA*, *RLHF*) and benchmark/dataset names, plain prose
+  for infrastructure (FastAPI, Azure, Docker, etc.) and proper-noun-list
+  names like `Scale AI` / `MITRE` / `Prajna`. Pre-edit Sonnet was
+  bolding every proper noun, which made the asterisks visual noise
+  rather than emphasis. To actually render those markers, I wired
+  `react-markdown` into the ChatDrawer with a minimal allowlist (`p`,
+  `strong`, `em`) and `unwrapDisallowed` + `skipHtml` so prompt-injection
+  attempts can't inject headings, links, or HTML. Refused and errored
+  messages bypass the parser entirely (server-controlled plain text),
+  and the screen-reader `sr-only` mirror runs through the same pipeline
+  so semantic `<strong>` / `<em>` voice cues replace the literal "asterisk
+  asterisk Scale AI asterisk asterisk" announcement. Bold weight is 600
+  (not 700) so emphasis stays confident without re-introducing the
+  pre-edit shouty effect. While I was in the same surface, I tightened
+  two `/ar` details that surfaced in the walkthrough: I removed the
+  Session 38 ChatDrawer anchor-flip so the drawer slides from the same
+  side as the FAB (bottom-right) under both locales — having the trigger
+  and the drawer on opposite corners was a UX inconsistency — and added
+  `text-align: right` scoped to `html[dir="rtl"] .chat-msg` so English
+  answers under `/ar` read aligned with the rest of the RTL chrome.
+  SYSTEM_PROMPT now has a §8 Formatting rule that applies identically
+  to English and Arabic answers. Five new tests assert the rendering
+  contract (bold, italic, mixed, disallowed-strip, Arabic); full suite
+  is 84/84 passing.
 - [ ] **Slice 5.5b** — Final Phase 5 work: 9-breakpoint visual audit
   plus a detail-card geometry invariant probe under `/ar` to make sure
   the LTR clearance math (col 1 ≥ 40px, max-width clamp ≤ 380 + margin
   clamp ≤ 120) holds in the mirrored layout.
-- 🟡 **Slices 5.1–5.3 (MDX blog)** — Deferred for now. I'm prioritizing the
-  bilingual surface to unblock the Arabic-speaking part of my UAE hiring
-  audience first; the blog work resumes once Phase 5's i18n surface fully
-  lands.
+- 🟡 **Slices 5.1–5.3 (MDX blog)** — deferred. The bilingual surface takes
+  priority for the UAE hiring audience; blog work resumes once Phase 5's
+  i18n surface fully lands.
 
 ### Planned
 

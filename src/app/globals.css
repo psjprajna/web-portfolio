@@ -1194,6 +1194,23 @@ body.chat-open .chat-drawer { transform: translateX(0); }
   border-bottom-left-radius: 6px;
   max-width: 100%;
 }
+/* react-markdown renders **bold** → <strong>, *italic* → <em>, prose → <p>.
+   Weight 600 (not 700) keeps bold confident without re-introducing the
+   "shouty" effect we got from Sonnet's pre-edit over-bolding. */
+.chat-msg-ai strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.chat-msg-ai em {
+  font-style: italic;
+  color: var(--ink);
+}
+.chat-msg-ai p {
+  margin: 0;
+}
+.chat-msg-ai p + p {
+  margin-top: 0.6em;
+}
 .chat-msg-refused {
   color: var(--ink);
   background: rgba(200, 148, 26, 0.08);
@@ -1687,22 +1704,23 @@ html[dir="rtl"] .lineage-hint-icon svg {
   html[dir="rtl"] .tl-details-bullets li::before { left: auto; right: 0; }
 }
 
-/* === Slice 5.5a — RTL additions (chat drawer + project card actions) === */
+/* === RTL additions — chat drawer text + project card actions === */
 
-/* ChatDrawer — anchor + slide direction flip.
-   Re-declare open-state transform under the html[dir="rtl"] selector
-   because the closed-state rule below has higher specificity than the
-   global body.chat-open rule and would otherwise leave the drawer
-   stranded at translateX(-100%). */
-html[dir="rtl"] .chat-drawer {
-  right: auto;
-  left: 0;
-  border-left: 0;
-  border-right: 1px solid var(--border-soft);
-  box-shadow: 20px 0 60px var(--shadow-pop);
-  transform: translateX(-100%);
+/* ChatDrawer slide direction is INTENTIONALLY not flipped under /ar.
+   Rationale: the ChatFAB stays bottom-right under both locales (Session 36
+   locked-in decision — chat-trigger follows global convention, not writing
+   direction). Anchoring the drawer to the left under /ar would put the
+   trigger and the drawer on opposite sides of the viewport — bad UX. Drawer
+   stays right, slides from right, matches FAB position.
+
+   Right-align chat-bubble TEXT under /ar so English answers (which Sonnet
+   may produce per Language rule when the visitor asks in English) read in
+   alignment with the rest of the RTL chrome. Bubble PLACEMENT is unchanged
+   — it's governed by `align-self` on the flex container, which auto-flips
+   correctly. Only the text-block alignment within the bubble is overridden. */
+html[dir="rtl"] .chat-msg {
+  text-align: right;
 }
-html[dir="rtl"] body.chat-open .chat-drawer { transform: translateX(0); }
 
 /* ProjectCard `.card-actions` is intentionally NOT overridden under RTL.
    The default flex auto-flip produces [READ SPEC visual-left][GITHUB visual-right]
