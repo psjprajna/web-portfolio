@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -62,8 +61,6 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-const prePaintTheme = `(function(){try{if(localStorage.getItem('ps-theme')==='dark'){document.documentElement.classList.add('dark-mode');}}catch(e){}})();`
-
 export default async function LocaleLayout({
   children,
   params,
@@ -86,9 +83,12 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <head>
-        <Script id="prepaint-theme" strategy="beforeInteractive">
-          {prePaintTheme}
-        </Script>
+        {/* Synchronous by design: must execute before first paint to prevent
+            theme flash. Sync external <script src> avoids React 19's inline-script
+            warning that next/script <Script> was triggering on client-side locale
+            toggle. Static file in public/ is ~70 bytes, negligible perf cost. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/prepaint-theme.js" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300,0&display=swap"

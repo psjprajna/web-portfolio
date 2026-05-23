@@ -6,7 +6,7 @@ export function Footer() {
 
   return (
     <footer>
-      <div className="footer-name">Prajna Shetty</div>
+      <div className="footer-name">{t('name')}</div>
       <div className="footer-icons">
         <SocialIcons variant="footer" />
       </div>

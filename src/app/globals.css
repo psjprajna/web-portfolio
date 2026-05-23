@@ -1566,3 +1566,84 @@ html[dir="rtl"] .hero-name {
   html[dir="rtl"] .hero-top { right: auto; left: 80px; }
   html[dir="rtl"] .hero-soc-block { right: auto; left: 80px; }
 }
+
+/* ===== Partial RTL: chat FAB physical-left anchor — Session 35 user request =====
+   The floating chat button anchors at bottom-right in LTR. On /ar it should anchor
+   at bottom-LEFT to match the Arabic reading-direction edge convention. Both the
+   desktop (right: 28px) and mobile (right: 18px from line 1463) positions are
+   physical and don't auto-flip — explicit overrides at both breakpoints. */
+html[dir="rtl"] .chat-fab {
+  right: auto;
+  left: 28px;
+}
+@media (max-width: 767px) {
+  html[dir="rtl"] .chat-fab { right: auto; left: 18px; }
+}
+
+/* ===== Partial RTL: bio quote accent bar — Session 35 user request =====
+   The bio blockquote uses a left-edge gold accent bar (border-left + padding-left).
+   Both are physical properties and don't auto-flip with dir. On /ar the bar must
+   sit on the RIGHT edge to match Arabic reading flow (gold bar precedes Arabic
+   text from its inline-start = physical-right). Additive override. */
+html[dir="rtl"] .bio-quote {
+  border-left: 0;
+  padding-left: 0;
+  border-right: 3px solid var(--gold);
+  padding-right: 16px;
+}
+
+/* ===== Partial RTL: lineage hint chevron flip — Session 35 user request =====
+   The "Select an entry to read more" hint includes a right-pointing chevron SVG.
+   In RTL inline flow that chevron lands at inline-start (= physical right) and
+   still points right — visually pointing AWAY from the Arabic text. Mirroring
+   the path with scaleX(-1) makes it point at the text, restoring the LTR
+   semantic where the chevron directs gaze toward the read-more affordance.
+   Additive only. Full lineage RTL pass remains Slice 5.5b. */
+html[dir="rtl"] .lineage-hint-icon svg {
+  transform: scaleX(-1);
+}
+
+/* ===== Partial RTL: lineage timeline FULL mirror — Session 35 user request =====
+   Mirrors the alternating-spine layout: side-LEFT entries (data file) display on
+   the physical-RIGHT of the spine in /ar; side-RIGHT entries on physical-LEFT.
+   Logos sit adjacent to the spine, text aligns toward the spine, mirroring the
+   LTR semantics in inverted physical space.
+
+   Most flex properties auto-flip correctly under dir=rtl (justify-content,
+   align-items on column-flex, flex-direction reverses physical direction) — so
+   only the physical-direction-locked properties need overrides:
+     - padding-right / padding-left (swap which side the content area squeezes from)
+     - text-align: left / right (swap toward spine)
+
+   Spine geometry itself (.tl-list::before at left: 50%) is direction-invariant.
+
+   Desktop-only scope: tablet/mobile use a single-rail layout under
+   @media (max-width: 1199px), (max-height: 879px). Higher-specificity dir-scoped
+   selectors would override those mobile rules; the desktop-only @media here
+   pins the fix to the alternating-spine viewport range. Mobile RTL audit
+   remains part of Slice 5.5b's 9-breakpoint pass. */
+@media (min-width: 1200px) and (min-height: 880px) {
+  html[dir="rtl"] .tl-entry.side-left  {
+    padding-right: 0;
+    padding-left: calc(50% + 18px);
+  }
+  html[dir="rtl"] .tl-entry.side-right {
+    padding-left: 0;
+    padding-right: calc(50% + 18px);
+  }
+  html[dir="rtl"] .tl-entry.side-left  .tl-text { text-align: left; }
+  html[dir="rtl"] .tl-entry.side-right .tl-text { text-align: right; }
+
+  /* Detail card on /ar lives in the physical-LEFT 1fr track (grid-column: 3
+     auto-flips with writing direction). justify-self: start sticks it to that
+     track's physical-RIGHT edge, which is adjacent to the spine column. The
+     LTR margin-left clamp buffers the SPINE-adjacent side in LTR (where the
+     card is in the physical-right column with its physical-left edge facing
+     the spine). In RTL the spine-adjacent side is physical-RIGHT, so the
+     buffer needs to move to margin-right. Without this the card hugs the
+     spine column with zero clearance. */
+  html[dir="rtl"] .detail-card {
+    margin-left: 0;
+    margin-right: clamp(72px, 6.4vw, 120px);
+  }
+}

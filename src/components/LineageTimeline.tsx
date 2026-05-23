@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { JOURNEY_ENTRIES, type JourneyEntry } from '@/lib/data/journey'
+import { useTranslations, useLocale } from 'next-intl'
+import { JOURNEY_ENTRIES, localizeJourneyEntry, type JourneyEntry } from '@/lib/data/journey'
 
 const MOUSE_LEAVE_GRACE_MS = 200
 
@@ -9,15 +10,22 @@ const LINEAGE_HEIGHT_MIN_PX = 260
 const LINEAGE_HEIGHT_MAX_PX = 640
 
 export function LineageTimeline() {
+  const t = useTranslations('Lineage')
+  const locale = useLocale()
   const [pinnedKey, setPinnedKey] = useState<string | null>(null)
   const [hoverKey, setHoverKey] = useState<string | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const listRef = useRef<HTMLOListElement | null>(null)
 
+  const entries = useMemo(
+    () => JOURNEY_ENTRIES.map((e) => localizeJourneyEntry(e, locale)),
+    [locale],
+  )
+
   const activeKey = hoverKey ?? pinnedKey
   const activeEntry = useMemo(
-    () => JOURNEY_ENTRIES.find((e) => e.key === activeKey) ?? JOURNEY_ENTRIES[0]!,
-    [activeKey],
+    () => entries.find((e) => e.key === activeKey) ?? entries[0]!,
+    [activeKey, entries],
   )
   const mode: 'detail' | 'timeline' = activeKey ? 'detail' : 'timeline'
 
@@ -138,10 +146,10 @@ export function LineageTimeline() {
   return (
     <div className="journey-area" data-mode={mode}>
       <div className="lineage-heading">
-        <p className="lineage-label">Lineage</p>
+        <p className="lineage-label">{t('label')}</p>
         <div className="lineage-heading-row">
-          <h2 className="lineage-title">Professional Lineage</h2>
-          <span className="lineage-sub">Work, study & the path that got me here</span>
+          <h2 className="lineage-title">{t('title')}</h2>
+          <span className="lineage-sub">{t('subtitle')}</span>
         </div>
         <div className="lineage-rule" />
         <p className="lineage-hint" aria-hidden="true">
@@ -150,14 +158,14 @@ export function LineageTimeline() {
               <path d="M9 6l6 6-6 6" />
             </svg>
           </span>
-          <span>Select an entry to read more</span>
+          <span>{t('hint')}</span>
         </p>
       </div>
 
       <div className="journey-views">
         <div className="timeline-view">
           <ol className="tl-list" ref={listRef}>
-            {JOURNEY_ENTRIES.map((entry) => (
+            {entries.map((entry) => (
               <TimelineEntry
                 key={entry.key}
                 entry={entry}

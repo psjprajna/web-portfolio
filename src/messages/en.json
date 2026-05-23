@@ -14,6 +14,7 @@
     "scrollAria": "Scroll to About"
   },
   "Footer": {
+    "name": "Prajna Shetty",
     "location": "Dubai, UAE"
   },
   "Social": {
@@ -29,5 +30,31 @@
     "home": "Home",
     "openAria": "Open menu",
     "closeAria": "Close menu"
+  },
+  "About": {
+    "heading": "Building systems<br></br>that <em>reason.</em>",
+    "quote": "“I build AI systems that ship — to federal infrastructure, frontier-model training pipelines, and real users.”",
+    "para1": "AI/ML Engineer with direct experience inside OpenAI’s frontier LLM training pipeline (SFT + RLHF/PPO/DPO at Scale AI) and 3+ years building production AI systems on U.S. federal infrastructure for the U.S. Department of Transportation / NHTSA.",
+    "para2": "Specialise in RAG pipeline engineering (hybrid retrieval, RAGAS evaluation, LangFuse observability), multi-agent architectures (LangGraph, ReAct), and end-to-end MLOps from MLflow tracking to drift monitoring and FastAPI deployment. Now Dubai-based, available immediately."
+  },
+  "Lineage": {
+    "label": "Lineage",
+    "title": "Professional Lineage",
+    "subtitle": "Work, study & the path that got me here",
+    "hint": "Select an entry to read more"
+  },
+  "Arsenal": {
+    "label": "Arsenal",
+    "title": "Technical Stack",
+    "subtitle": "Tools of the trade & expertise areas"
+  },
+  "Projects": {
+    "label": "Catalog",
+    "title": "Selected Works",
+    "subtitle": "LLM agents & ML systems shipped to production"
+  },
+  "ProjectCard": {
+    "githubLabel": "GITHUB",
+    "specLabel": "READ SPEC"
   }
 }

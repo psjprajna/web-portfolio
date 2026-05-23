@@ -1,19 +1,23 @@
-import { SKILLS, type Skill, type SkillIconName } from '@/lib/data/skills'
+import { useTranslations, useLocale } from 'next-intl'
+import { SKILLS, localizeSkill, type Skill, type SkillIconName } from '@/lib/data/skills'
 
 export function Arsenal() {
+  const t = useTranslations('Arsenal')
+  const locale = useLocale()
+  const skills = SKILLS.map((s) => localizeSkill(s, locale))
   return (
     <div className="arsenal-section">
       <div>
-        <p className="arsenal-label">Arsenal</p>
+        <p className="arsenal-label">{t('label')}</p>
         <div className="arsenal-heading-row">
-          <h2 className="arsenal-title">Technical Stack</h2>
-          <span className="arsenal-sub">Tools of the trade &amp; expertise areas</span>
+          <h2 className="arsenal-title">{t('title')}</h2>
+          <span className="arsenal-sub">{t('subtitle')}</span>
         </div>
         <div className="arsenal-rule" />
       </div>
 
       <div className="skill-grid">
-        {SKILLS.map((skill) => (
+        {skills.map((skill) => (
           <SkillCard key={skill.num} skill={skill} />
         ))}
       </div>

@@ -1,6 +1,19 @@
 export type JourneyType = 'work' | 'edu'
 export type JourneySide = 'left' | 'right'
 
+// All `translations.ar` fields are machine-authored best-effort. Native-speaker
+// review required pre-launch — see Slice 5.4c handoff. Proper nouns (place,
+// placeLong: "Scale AI" / "MITRE" / "Syneren" / etc.) deliberately stay Latin
+// in all locales.
+
+export interface JourneyEntryAr {
+  shortRole?: string
+  role?: string
+  location?: string
+  date?: string
+  bullets?: readonly [string, string?, string?]
+}
+
 export interface JourneyEntry {
   key: string
   // place: short form rendered in the desktop lineage timeline cards.
@@ -22,6 +35,7 @@ export interface JourneyEntry {
   date: string
   // 1-3 bullets. Education entries often need only 1; internships 2; full roles 3.
   bullets: readonly [string, string?, string?]
+  translations?: { ar?: JourneyEntryAr }
 }
 
 export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
@@ -43,6 +57,19 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       'Two production LangGraph multi-agent systems — one automating NHTSA safety document processing, one cross-referencing federal motor vehicle safety standards — both Pinecone-backed and fully Langfuse-traced across every agent step.',
       'Eval-first by default — RAGAS faithfulness and context recall on every retrieval, Langfuse traces on every agent step, SHAP explainability on every classifier; nothing ships untraced.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'مهندسة برمجيات',
+        role: 'مهندسة برمجيات',
+        location: 'فيرجينيا، الولايات المتحدة',
+        date: 'فبراير ٢٠٢٣ — حالياً',
+        bullets: [
+          'ثلاث سنوات من شحن أنظمة GenAI الإنتاجية إلى سير عمل فيدرالي مباشر — خطوط متعددة الوكلاء على LangGraph، وRAG مع تقييم كامل، وأنظمة LLM تعمل لمستخدمين حقيقيين، لا لواجهات تجريبية.',
+          'نظامان إنتاجيان متعددا الوكلاء على LangGraph — أحدهما يؤتمت معالجة وثائق سلامة NHTSA، والآخر يُقارن المعايير الفيدرالية لسلامة المركبات الآلية — كلاهما مدعوم بـPinecone ومُتعقَّب بالكامل عبر Langfuse في كل خطوة وكيل.',
+          'التقييم أولاً افتراضياً — RAGAS لقياس الوفاء واسترداد السياق في كل عملية استرجاع، وLangfuse للتتبع في كل خطوة وكيل، وSHAP لتفسير كل مُصنِّف؛ لا شيء يُشحن دون تتبع.',
+        ],
+      },
+    },
   },
   {
     key: 'scale-ai',
@@ -62,6 +89,19 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       "Hands inside OpenAI's alignment loop — every evaluation I shipped became preference data that PPO/DPO training optimized against.",
       'Sat one layer away from the model: my judgments on code, reasoning, and instruction-following were the reward signal that shaped how a frontier LLM reasons about code.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'قائدة فريق',
+        role: 'متخصصة RLHF وقائدة فريق',
+        location: 'عن بُعد، الولايات المتحدة',
+        date: 'يونيو ٢٠٢٣ — يونيو ٢٠٢٤',
+        bullets: [
+          'قائدة فريق في Scale AI — قُدتُ أكثر من ٥٠ مُعَلِّقاً في مشروع محاذاة نموذج لغوي رائد، ووجَّهتُ عملهم على تقييمات استدلال معقدة، وصحَّحتُ تعليقاتهم، وحافظتُ على اتساق الفريق عبر مهمة المحاذاة بمقياس واسع.',
+          'يداي داخل حلقة محاذاة OpenAI — كل تقييم شحنته أصبح بيانات تفضيلية يُحسِّن PPO/DPO ضدها أثناء التدريب.',
+          'جلستُ على بُعد طبقة واحدة من النموذج: أحكامي على الكود والاستدلال واتباع التعليمات كانت إشارة المكافأة التي شكَّلت طريقة تفكير نموذج لغوي رائد في الكود.',
+        ],
+      },
+    },
   },
   {
     key: 'george-mason',
@@ -80,6 +120,18 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       'Graduate coursework in statistical learning, machine learning, and large-scale data engineering — the theoretical foundation under everything that came after.',
       'Ran a MITRE Data Engineer internship in parallel — graduate theory and federal-data engineering on the same calendar.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'ماجستير تحليلات البيانات',
+        role: 'ماجستير العلوم في تحليلات البيانات',
+        location: 'فيرجينيا، الولايات المتحدة',
+        date: 'ديسمبر ٢٠٢٢',
+        bullets: [
+          'مقررات دراسات عليا في التعلم الإحصائي والتعلم الآلي وهندسة البيانات واسعة النطاق — الأساس النظري الذي يقوم عليه كل ما تلاه.',
+          'أنجزتُ تدريباً كمهندسة بيانات في MITRE بالتوازي — النظرية الدراسية وهندسة البيانات الفيدرالية على التقويم نفسه.',
+        ],
+      },
+    },
   },
   {
     key: 'mitre',
@@ -98,6 +150,18 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       "Built the pipeline end-to-end — scraping, HTML cleaning, spaCy NER for entity tagging, LDA topic modeling with MLflow-tracked coherence sweeps, and DCAT-standard output into MITRE's research catalog.",
       'Tracked every experiment in MLflow even as an intern — topic-count sweeps optimized against c_v coherence, the same eval-first discipline I now apply with RAGAS and Langfuse.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'متدربة هندسة بيانات',
+        role: 'متدربة هندسة بيانات',
+        location: 'فيرجينيا، الولايات المتحدة',
+        date: 'أغسطس — ديسمبر ٢٠٢٢',
+        bullets: [
+          'بنيتُ خط المعالجة من البداية إلى النهاية — كَشط البيانات، وتنظيف HTML، واستخراج الكيانات المُسمَّاة عبر spaCy NER، ونمذجة الموضوعات بـLDA مع متابعة الاتساق عبر MLflow، ومخرجات بمعيار DCAT في كتالوج أبحاث MITRE.',
+          'تتبَّعتُ كل تجربة في MLflow حتى كمتدربة — اجتياحات عدد الموضوعات مُحسَّنة ضد اتساق c_v، الانضباط ذاته القائم على التقييم الذي أطبِّقه الآن مع RAGAS وLangfuse.',
+        ],
+      },
+    },
   },
   {
     key: 'navigem',
@@ -116,6 +180,18 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       'Trained dense embeddings the hard way in 2020 — ResNet pre-trained with softmax, then fine-tuned with triplet loss to learn an identity-matching embedding space; the same conceptual playbook I now apply with sentence-transformers in RAG.',
       'Shipped AI to a phone, not a server — TFLite + INT8 quantization for on-device deployment with a 4× footprint reduction and sub-second inference; the kind of optimization work that becomes relevant again with on-device LLMs.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'متدربة تعلم آلي',
+        role: 'متدربة تعلم آلي',
+        location: 'بنغالورو، الهند',
+        date: 'مايو — ديسمبر ٢٠٢٠',
+        bullets: [
+          'درَّبتُ تضمينات كثيفة بالطريقة الصعبة عام ٢٠٢٠ — ResNet مُدرَّب مسبقاً بـsoftmax، ثم ضُبط دقيقاً بخسارة الثلاثية لتعلُّم فضاء تضمين يطابق الهوية؛ نفس الكتاب المفاهيمي الذي أطبِّقه الآن مع sentence-transformers في RAG.',
+          'شحنتُ الذكاء الاصطناعي إلى هاتف، لا إلى خادم — TFLite + تكميم INT8 للنشر على الجهاز مع تقليل البصمة ٤× واستدلال دون الثانية؛ نوع التحسين الذي يعود ذا صلة مع نماذج LLM التي تعمل على الجهاز.',
+        ],
+      },
+    },
   },
   {
     key: 'nmit',
@@ -134,5 +210,24 @@ export const JOURNEY_ENTRIES: readonly JourneyEntry[] = [
       'Foundations in algorithms, data structures, systems, and applied ML — the engineering scaffold under everything that came after.',
       'Final-year ML internship at Navigem ran in parallel — undergrad coursework and quantized ML shipping to Android on the same calendar.',
     ],
+    translations: {
+      ar: {
+        shortRole: 'بكالوريوس علوم حاسوب',
+        role: 'بكالوريوس الهندسة في علوم الحاسوب',
+        location: 'بنغالورو، الهند',
+        date: 'أغسطس ٢٠٢٠',
+        bullets: [
+          'أسس في الخوارزميات وهياكل البيانات والأنظمة والتعلم الآلي التطبيقي — السقالة الهندسية التي يقوم عليها كل ما تلاه.',
+          'تدريب التعلم الآلي في السنة الأخيرة في Navigem جرى بالتوازي — مقررات البكالوريوس وشحن تعلم آلي مُكمَّم إلى Android على التقويم نفسه.',
+        ],
+      },
+    },
   },
 ]
+
+export function localizeJourneyEntry(entry: JourneyEntry, locale: string): JourneyEntry {
+  if (locale === 'ar' && entry.translations?.ar) {
+    return { ...entry, ...entry.translations.ar }
+  }
+  return entry
+}
