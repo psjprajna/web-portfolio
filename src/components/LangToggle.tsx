@@ -4,6 +4,13 @@ import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
 
+function getCurrentSectionHash(): string {
+  if (typeof document === 'undefined') return ''
+  const activeLink = document.querySelector<HTMLAnchorElement>('.nav-links a.active')
+  const href = activeLink?.getAttribute('href') ?? ''
+  return href.startsWith('#') ? href : ''
+}
+
 export function LangToggle() {
   const locale = useLocale()
   const router = useRouter()
@@ -11,7 +18,9 @@ export function LangToggle() {
 
   const switchTo = (next: (typeof routing.locales)[number]) => {
     if (next === locale) return
-    router.replace(pathname, { locale: next })
+    const hash = getCurrentSectionHash()
+    const target = hash ? `${pathname}${hash}` : pathname
+    router.replace(target, { locale: next, scroll: false })
   }
 
   return (
